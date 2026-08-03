@@ -102,7 +102,7 @@ Pdf_Trim_Msg = """
 
 Txt_Trim_Msg = """
 🛑 الآن أرسل جملة البداية والنهاية بهذه الصورة 
- startend 
+ start ~ end 
 """
 
 ### Pdf Funcs ###
@@ -237,11 +237,9 @@ def Merge_Images_UP(file1, file2):
       iso2 = image2.resize((result_width,height2))
       result.paste(iso1, box=(0, 0))
       result.paste(iso2, box=(0, int(aspectoheight1)))
-    if file2.startswith('.'):
-     Ind = 1 
-    else :
-     Ind = 0
-    outimg = ('.' if file2.startswith('.') else '') + file2.split('.')[Ind] + '_Merged.jpg'
+    
+    Ext = '.' + file2.split('.')[-1]
+    outimg = file2.replace(Ext,'_Merged.jpg')
     result.save(outimg) 
     os.remove(file1)
     os.remove(file2)
@@ -269,11 +267,8 @@ def Merge_Images_SBS(file1, file2):
       iso2 = image2.resize((width2,result_height))
       result.paste(iso1, box=(0, 0))
       result.paste(iso2, box=(int(aspectowidth1), 0))
-    if file2.startswith('.'):
-     Ind = 1 
-    else :
-     Ind = 0
-    outimg = ('.' if file2.startswith('.') else '') + file2.split('.')[Ind] + '_Merged.jpg'
+    Ext = '.' + file2.split('.')[-1]
+    outimg = file2.replace(Ext,'_Merged.jpg')
     result.save(outimg) 
     os.remove(file1)
     os.remove(file2)
@@ -351,7 +346,7 @@ def Get_Name(Msg):
   return Name 
 
 def Txt_Merge(FilesList):
-  Res_File = FilesList[0].split('.')[0] + '_Merged.txt'
+  Res_File = FilesList[0].replace('.txt','_Merged.txt')
   with open(Res_File,'a') as f :
     for file in FilesList :
       Text = open(file,'r').read()
@@ -385,7 +380,7 @@ def File_Dl(File_Msg,dl_path):
     else :
       Splitted = file_name.split('.')
       Name = Splitted[0]
-      Ex =  Splitted[1]
+      Ex =  Splitted[-1]
     custom_name = os.path.join(dl_path,f"{Name}_{random.randint(1,1000)}.{Ex}")
     File = File_Msg.download(file_name=custom_name)
   else :
@@ -401,7 +396,7 @@ def Zip_Func(dir):
 def Txt_Trim(Txt_File,Start_Word,End_Word):
     Start_Word = Start_Word.strip()
     End_Word = End_Word.strip()
-    Res_File = Txt_File.split('.')[0] + '_Trimmed.txt'
+    Res_File = Txt_File.replace('.txt','_Trimmed.txt')
     Orig_Text = open(Txt_File,'r').read()
     start_index = Orig_Text.find(Start_Word)
     end_index = Orig_Text.find(End_Word, start_index) + len(End_Word)
@@ -432,7 +427,7 @@ def Pdf_Page_Num(File):
   return Num 
   
 def Pdf_Make(Img_List):
- Ex = Img_List[-1].split('.')[-1]
+ Ex = '.' + Img_List[-1].split('.')[-1]
  Pdf_File = Img_List[-1].replace(Ex,'_Created.pdf')
  try : 
    open(Pdf_File,"wb").write(img2pdf.convert(Img_List))

@@ -1014,7 +1014,10 @@ def _telegram_file(client, message):
    
    else :
      Options = Other_Options
-     
+
+  elif message.video or message.audio or message.voice or message.video_note :
+    Options = Other_Options
+
   if str(User_Id) in admins : 
    Options += Premium_Opts
   CHOOSE_UR_BUTTONS = []

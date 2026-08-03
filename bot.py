@@ -932,7 +932,7 @@ def command1(bot,message):
 @bot.on_message(filters.command('start') & filters.private)
 def command1(bot,message):
    User_Id = message.from_user.id
-   message.reply('لبقية البوتات \n\n @sunnay6626')
+   message.reply(' تصميم \n\n @sunnay6626')
    #My_Db.Insert_User(message.from_user.id)
   
 #####

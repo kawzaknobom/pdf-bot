@@ -49,6 +49,7 @@ main_dl_path = f'./downloads_{Bot_Identifier}/'
 
 #### Bot Funcs ####
 
+Compress_Op = [['ضغط','Compress']]
 Other_Opts = [['Zip','Zip']]
 Other_Options = [['تسمية','Renm'],['تفاصيل','Det']] + Other_Opts
 T_linebreak = '\n\n ◾ــــــــــــــ◾ \n\n'
@@ -85,7 +86,7 @@ Renm_msg = "الآن أدخل الاسم الجديد "
 Compress_Op = [['ضغط','Compress']]
 Trim_Op = [['قص','Trim']]
 To_Pdf_Opt = [['Conv to Pdf ','2Pdf']]
-Pdf_Options = [['دمج','PMerge'],['Ocr','Ocr'],['فك قفل طباعة','Unlock'],['بلا حواشي','Marg']]  + Trim_Op + Cbx_Option
+Pdf_Options = [['دمج','PMerge'],['Ocr','Ocr'],['فك قفل طباعة','Unlock'],['بلا حواشي','Marg']]  + Trim_Op + Cbx_Option + Compress_Op
 Ppf_Opts = Pdf_Options + To_Pdf_Opt
 Pdf_Txt_Option = Other_Options + Trim_Op + Translate_Opts + [['دمج','TMerge']]
 Pdf_Image_Option = [['صنع بدف','PMake']]
@@ -409,10 +410,8 @@ def Txt_Trim(Txt_File,Start_Word,End_Word):
 def Pdf_Compress(bot,dl_path,File):
   pdf_file = File.replace('.pdf','_Compressed.pdf')
   Extract_Dir = Pdf_Extract(File)
-  Process_List = os.listdir(Extract_Dir)
-  for index , img in enumerate(Extract_Dir) : 
-    Process_List[index] = Extract_Dir + img
-  Pdf_File = Pdf_Make(Process_List)
+  Img_List = Dir_List(Extract_Dir)
+  Pdf_File = Pdf_Make(Img_List)
   os.rename(Pdf_File,pdf_file)
   return pdf_file
 
@@ -1082,12 +1081,6 @@ def callback_query(CLIENT,CallbackQuery):
            LANGS_BUTTONS.append([InlineKeyboardButton(lang.split('|')[0],callback_data=Data)])
         CallbackQuery.edit_message_text(text = CHOOSE_UR_LANG,reply_markup = InlineKeyboardMarkup(LANGS_BUTTONS))
         
-  elif Method in ['Compress'] :           
-        if file_msg.document.file_name.lower().endswith('pdf'):
-          replied = CallbackQuery.edit_message_text(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
-          File_Id = Callback_List[-1]
-          Item = f"{Method}_{File_Id}_{replied.id}_{User_Id}"
-          Item_add(Item)      
     
   elif Method in ('Trim','Renm'):
    bot.delete_messages(User_Id,CallbackQuery.message.id)
@@ -1103,7 +1096,7 @@ def callback_query(CLIENT,CallbackQuery):
    
    file_msg.reply_text(Text,reply_markup=ForceReply(True),reply_to_message_id=file_msg.id)
   
-  elif Method in ('Ocr','2Pdf','Det','Ex','Marg','Unlock') :
+  elif Method in ('Ocr','2Pdf','Det','Ex','Marg','Unlock','Compress') :
    
     replied = CallbackQuery.edit_message_text(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
     File_Id = Callback_List[-1]

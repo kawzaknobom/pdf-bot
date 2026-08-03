@@ -120,8 +120,8 @@ Txt_Trim_Msg = """
 def upld2arch(upldarchpath,bucketname):
   session = ia.get_session(config={
     's3': {
-        'access': os.environ['access_key'],
-        'secret': os.environ['secret_key']
+        'access': access_key,
+        'secret': secret_key
     }
 })
   ia.upload(

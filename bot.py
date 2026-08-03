@@ -28,7 +28,6 @@ Renm_L = []
 Bot_Token = os.environ['Bot_Token']
 Api_Id = os.environ['Api_Id']
 Api_Hash = os.environ['Api_Hash']
-Api_Hash = os.environ['Api_Hash']
 Serv_Acc = os.environ['Service_Acc']
 
 
@@ -433,7 +432,8 @@ def Pdf_Page_Num(File):
   return Num 
   
 def Pdf_Make(Img_List):
- Pdf_File = Img_List[-1].replace('.pdf','_Created.pdf')
+ Ex = Img_List[-1].split('.')[-1]
+ Pdf_File = Img_List[-1].replace(Ex,'_Created.pdf')
  try : 
    open(Pdf_File,"wb").write(img2pdf.convert(Img_List))
  except : 

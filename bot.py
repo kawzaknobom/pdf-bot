@@ -17,6 +17,7 @@ from textwrap import wrap
 from pdfCropMargins import crop
 from math import ceil
 
+import internetarchive as ia
 from googletrans import Translator
 
 Merge_Quee = {}
@@ -29,6 +30,10 @@ Bot_Token = os.environ['Bot_Token']
 Api_Id = os.environ['Api_Id']
 Api_Hash = os.environ['Api_Hash']
 Serv_Acc = os.environ['Service_Acc']
+access_key = os.environ['access_key']
+secret_key = os.environ['secret_key']
+admins = os.environ['admins']
+
 
 
 def Pyrogram_Client(Bot_Token):
@@ -49,6 +54,7 @@ main_dl_path = f'./downloads_{Bot_Identifier}/'
 
 #### Bot Funcs ####
 
+Premium_Opts = [['رفع لأرشيف','ToArch']]
 Compress_Op = [['ضغط','Compress']]
 Other_Opts = [['Zip','Zip']]
 Other_Options = [['تسمية','Renm'],['تفاصيل','Det']] + Other_Opts
@@ -108,6 +114,24 @@ Txt_Trim_Msg = """
 
 ### Pdf Funcs ###
 
+
+def upld2arch(upldarchpath,bucketname):
+  session = ia.get_session(config={
+    's3': {
+        'access': os.environ['access_key'],
+        'secret': os.environ['secret_key']
+    }
+})
+  ia.upload(
+    identifier=bucketname,
+    files=upldarchpath,
+    verbose=True,
+    retries=3,
+    archive_session=session
+)
+  file_name = os.path.basename(upldarchpath)
+  Arch_Url = f"https://archive.org/download/{bucketname}/{file_name}"
+  return Arch_Url
 
 def Google_Trans_Txt(TxtFile,lang_sy='ar'):
   Txt_File = TxtFile.replace('.txt','_Translated.txt') 
@@ -757,6 +781,10 @@ def Multi_loop():
                   Extract_Dir = Pdf_Extract(File)
                   Msgs_List = Upld_Dir_Func(Extract_Dir,File_Msg)
 
+         elif process == 'ToArch' : 
+           Link = upld2arch(File)
+           File_Msg.reply(text=Link,reply_to_message_id = File_Msg.id)
+
          elif process in ['Ocr','Trans']:
             
             if File.lower().endswith('txt'):
@@ -984,6 +1012,8 @@ def _telegram_file(client, message):
    else :
      Options = Other_Options
      
+  if User_Id in admins : 
+   Options += Premium_Opts
   CHOOSE_UR_BUTTONS = []
   CHOOSE_UR_Option = "اختر ما تريد "
   for Index,option in enumerate(Options) : 
@@ -1097,7 +1127,7 @@ def callback_query(CLIENT,CallbackQuery):
    
    file_msg.reply_text(Text,reply_markup=ForceReply(True),reply_to_message_id=file_msg.id)
   
-  elif Method in ('Ocr','2Pdf','Det','Ex','Marg','Unlock','Compress') :
+  elif Method in ('Ocr','2Pdf','Det','Ex','Marg','Unlock','Compress','ToArch') :
    
     replied = CallbackQuery.edit_message_text(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
     File_Id = Callback_List[-1]

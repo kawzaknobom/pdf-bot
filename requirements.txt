@@ -16,6 +16,7 @@ tgcrypto
 requests
 googletrans
 tahweel
+internetarchive
 
 tgbot-ping
 Flask

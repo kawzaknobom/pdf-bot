@@ -645,7 +645,7 @@ def reload_loop(process):
 def Multi_loop():
   Multi_Q = public_q
   for obj in range (0,len(Multi_Q)) :
-   timer = threading.Timer(1800, reload_loop, args=[public_q[0]])
+   timer = threading.Timer(900, reload_loop, args=[public_q[0]])
    timer.start()
 
    for elem in range (1,len(Multi_Q)) :

@@ -515,6 +515,7 @@ def pdf_ocr_func(Ocr_Path):
     for img in Img_List : 
       Txt,docx = Ocr_Func(img)
       f.write(open(Txt,'r').read() + T_linebreak)
+      os.remove(Txt)
   return Text_File
 
 def Ocr_Func(Ocr_Path):
@@ -525,7 +526,7 @@ def Ocr_Func(Ocr_Path):
     data = json.loads(clean_string)
     formatted_json = json.dumps(data, indent=2)
     open(ServAcc_File,'w').write(formatted_json)
-  Dir_Path = ('.' if Ocr_Path.startswith('.') else '') + '/'.join(Ocr_Path.split('/')[:-1]) + '/'
+  Dir_Path = '/'.join(Ocr_Path.split('/')[:-1]) + '/'
 
   abs_serv_acc = os.path.abspath(ServAcc_File)
   os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = abs_serv_acc
@@ -634,7 +635,7 @@ def reload_loop(process):
         reply_msg = Get_Msg(bot,user_id,rp_msg_id)
         File_Msg = Get_Msg(bot,user_id,msg_list[1])
         try : 
-            reply_msg.edit_text("لقد تخطيت الحد الزمني الأقصى للطلب ( 30 دقيقة )")
+            reply_msg.edit_text("لقد تخطيت الحد الزمني الأقصى للطلب ( 15 دقيقة )")
         except :
           reply_msg.delete()
           reply_msg = File_Msg.reply("لقد تخطيت الحد الزمني الأقصى للطلب ( 30 دقيقة )")

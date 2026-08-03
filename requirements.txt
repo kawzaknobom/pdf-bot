@@ -1,0 +1,25 @@
+
+Pillow
+img2pdf
+
+# Document & PDF Handling
+
+pypdf
+pypdfium2
+pdf2image
+pdfCropMargins
+
+# Integration & API
+
+pyrogram
+tgcrypto
+requests
+googletrans
+tahweel
+
+tgbot-ping
+Flask
+beautifulsoup4
+requests
+Werkzeug==2.3.8
+gunicorn 

@@ -34,6 +34,8 @@ access_key = os.environ['access_key']
 secret_key = os.environ['secret_key']
 admins = os.environ['admins']
 
+Admins = admins.split(',')
+
 
 
 def Pyrogram_Client(Bot_Token):
@@ -1012,7 +1014,7 @@ def _telegram_file(client, message):
    else :
      Options = Other_Options
      
-  if User_Id in admins : 
+  if str(User_Id) in admins : 
    Options += Premium_Opts
   CHOOSE_UR_BUTTONS = []
   CHOOSE_UR_Option = "اختر ما تريد "

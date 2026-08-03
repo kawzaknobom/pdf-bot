@@ -117,7 +117,8 @@ Txt_Trim_Msg = """
 ### Pdf Funcs ###
 
 
-def upld2arch(upldarchpath,bucketname):
+def upld2arch(upldarchpath):
+  bucketname = "Archv2_Sunnay_Upld"
   session = ia.get_session(config={
     's3': {
         'access': access_key,

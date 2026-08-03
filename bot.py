@@ -640,7 +640,7 @@ def reload_loop(process):
           reply_msg.delete()
           reply_msg = File_Msg.reply("لقد تخطيت الحد الزمني الأقصى للطلب ( 30 دقيقة )")
         del public_q[0]
-        thread = threading.Thread(target=Multi_loop, args=["MainQ"])
+        thread = threading.Thread(target=Multi_loop)
         thread.start()
 
 def Multi_loop():

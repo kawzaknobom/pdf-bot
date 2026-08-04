@@ -621,7 +621,7 @@ def Universal_Concat(message,Merge_Quee,Method):
         Word = 'الملفات'
         Cmd = '/Z_Finish'
         C_Cmd = '/Z_Clear'
-      elif method == 'AUpload':
+      elif method == 'ToArch':
         Word = 'الملفات'
         Cmd = '/AU_Finish'
         C_Cmd = '/AU_Clear'
@@ -910,7 +910,7 @@ def command1(bot,message):
      Key = f'{Method}_{User_Id}'
 
    elif message.text.strip() == '/AU_Clear':
-        Method = 'AUpload'
+        Method = 'ToArch'
         Key = f'{Method}_{User_Id}'
 
    Reply_Id = Merge_Quee[Key][0][0]
@@ -952,12 +952,12 @@ def command1(bot,message):
      Key = f'{Method}_{User_Id}'
 
    elif message.text.strip() == '/AU_Finish':
-        Method = 'AUpload'
+        Method = 'ToArch'
         Key = f'{Method}_{User_Id}'
 
    Replied_Msg_id = Merge_Quee[Key][0][0]
    Replied_Msg = Get_Msg(bot,User_Id,Replied_Msg_id)
-   if len(Merge_Quee[Key][1]) < 2 and not Method in ('PMake','Zip','AUpload') :
+   if len(Merge_Quee[Key][1]) < 2 and not Method in ('PMake','Zip','ToArch') :
         Replied_Msg.edit_text("لقد أرسلت ملفاً واحداً فقط !")
         return
    else :
@@ -996,7 +996,7 @@ def _telegram_file(client, message):
   Pmake_Key = f'PMake_{User_Id}'
   PMerge_Key = f'PMerge_{User_Id}'
   TMerge_Key = f'TMerge_{User_Id}'
-  AUpload_Key = f'AUpload_{User_Id}'
+  AUpload_Key = f'ToArch_{User_Id}'
 
   if Zip_Key in list(Merge_Quee.keys()):
     Universal_Concat(message,Merge_Quee,Zip_Key)
@@ -1113,8 +1113,6 @@ def callback_query(CLIENT,CallbackQuery):
       C_Cmd = '/IP_Clear'
       
     Key = f'{Method}_{User_Id}'
-    if Method == 'ToArch':
-      Key = f'AUpload_{User_Id}'
     if Key in list(Merge_Quee.keys()):
      del Merge_Quee[Key]
     Merge_Quee[Key] = [[],[Callback_List[-1]]]

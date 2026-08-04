@@ -307,7 +307,10 @@ def Upld_File(file,Msg,cap=' ',isogg=False):
   try:
     if file != None:
       if file.lower().endswith(Image_forms):
-          RMsg = Msg.reply_photo(file)
+          try : 
+            RMsg = Msg.reply_photo(file)
+          except : 
+            RMsg = Msg.reply_document(file)
       else :
           RMsg = Msg.reply_document(file,caption=cap)
       return RMsg.id

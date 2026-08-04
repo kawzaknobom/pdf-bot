@@ -1113,6 +1113,8 @@ def callback_query(CLIENT,CallbackQuery):
       C_Cmd = '/IP_Clear'
       
     Key = f'{Method}_{User_Id}'
+    if Method == 'ToArch':
+      Key = f'AUpload_{User_Id}'
     if Key in list(Merge_Quee.keys()):
      del Merge_Quee[Key]
     Merge_Quee[Key] = [[],[Callback_List[-1]]]

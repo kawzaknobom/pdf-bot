@@ -736,37 +736,38 @@ def Multi_loop():
         if process == 'IMerge' :
           Files_Ids = msg_list[1:-3]
         Process_List,Msg_List = Multi_Op_Dl(bot,dl_path,Files_Ids,user_id)
-        if process == 'PMerge' : 
-          Res_File = Pdf_Merge(Process_List)
-        elif process == 'TMerge':
-          Res_File = Txt_Merge(Process_List)
+
+        if process in ['PMerge','IMerge','PMake','Zip','TMerge']:
+          if process == 'PMerge' : 
+            Res_File = Pdf_Merge(Process_List)
+          elif process == 'TMerge':
+            Res_File = Txt_Merge(Process_List)
+
+          elif process == 'IMerge' :
+            if len(Process_List) < 11 :
+              if msg_list[-3] == 'SBS':
+                Merge_Mode = Merge_Images_SBS
+              else : 
+                Merge_Mode = Merge_Images_UP
+              Res_File = reduce(Merge_Mode,Process_List)
+              File_Msg.reply_document(Res_File)
+            else :
+              File_Msg.reply('غير مسموح بأكثر من عشر صور ')
             
-
-        elif process == 'IMerge' :
-         if len(Process_List) < 11 :
-          if msg_list[-3] == 'SBS':
-            Merge_Mode = Merge_Images_SBS
-          else : 
-            Merge_Mode = Merge_Images_UP
-          Res_File = reduce(Merge_Mode,Process_List)
-          File_Msg.reply_document(Res_File)
-         else :
-           File_Msg.reply('غير مسموح بأكثر من عشر صور ')
+          elif process == 'PMake' : 
+            Res_File = Pdf_Make(Process_List)
+          elif process == 'Zip' :
+            Res_File = Zip_Func(dl_path)
           
-        elif process == 'PMake' : 
-         Res_File = Pdf_Make(Process_List)
-        elif process == 'Zip' :
-          Res_File = Zip_Func(dl_path)
-        Upld_File(Res_File,File_Msg)
+          Upld_File(Res_File,File_Msg)
+          if process == 'Zip' :
+            os.remove(Res_File)
 
-        if process == 'ToArch' : 
+        elif process == 'ToArch' : 
            Links = upld2arch(Process_List)
            for ind,Link in enumerate(Links) : 
              msg = Msg_List[ind]
-             msg.reply(text=Link,reply_to_message_id = msg.id)
-
-        elif process == 'Zip' :
-          os.remove(Res_File)
+             msg.reply(text=Link,reply_to_message_id = msg.id) 
       
       else :
        Rate = msg_list[2]

@@ -117,7 +117,8 @@ Txt_Trim_Msg = """
 ### Pdf Funcs ###
 
 
-def upld2arch(upldarchpath):
+def upld2arch(upldarchlist):
+  Links = []
   bucketname = "Archv2_Sunnay_Upld"
   session = ia.get_session(config={
     's3': {
@@ -127,14 +128,16 @@ def upld2arch(upldarchpath):
 })
   ia.upload(
     identifier=bucketname,
-    files=upldarchpath,
+    files=upldarchlist,
     verbose=True,
     retries=3,
     archive_session=session
 )
-  file_name = os.path.basename(upldarchpath)
-  Arch_Url = f"https://archive.org/download/{bucketname}/{file_name}"
-  return Arch_Url
+  for file in upldarchlist : 
+    file_name = os.path.basename(file)
+    Arch_Url = f"https://archive.org/download/{bucketname}/{file_name}"
+    Links.append(Arch_Url)
+  return Links
 
 def Google_Trans_Txt(TxtFile,lang_sy='ar'):
   Txt_File = TxtFile.replace('.txt','_Translated.txt') 
@@ -386,13 +389,15 @@ def Txt_Merge(FilesList):
 
 def Multi_Op_Dl(bot,dl_path,Files_Ids,User_Id,Del_Orig=False):
   Gen_List = []
+  Msg_List = []
   for No,Id in enumerate(Files_Ids) :
     File_Msg = Get_Msg(bot,User_Id,Id)
+    Msg_List.append(File_Msg)
     File = File_Dl(File_Msg,dl_path)
     Gen_List.append(File)
     if Del_Orig :
       File_Msg.delete()
-  return Gen_List
+  return Gen_List,Msg_List
 
 def File_Dl(File_Msg,dl_path):
   if File_Msg.audio or File_Msg.video or File_Msg.document  :
@@ -606,7 +611,8 @@ def Pdf_Cases(Case,File,Msg):
     Pdf_File = Pdf_Page(File,int(Case))
     Extract_Dir = Pdf_Extract(Pdf_File)
     Msgs_List = Upld_Dir_Func(Extract_Dir,Msg)
- 
+
+
 def Universal_Concat(message,Merge_Quee,Method):
       User_Id = message.from_user.id
       Merge_Quee[Method][1].append(str(message.id))
@@ -615,6 +621,10 @@ def Universal_Concat(message,Merge_Quee,Method):
         Word = 'الملفات'
         Cmd = '/Z_Finish'
         C_Cmd = '/Z_Clear'
+      elif method == 'AUpload':
+        Word = 'الملفات'
+        Cmd = '/AU_Finish'
+        C_Cmd = '/AU_Clear'
       else :
         if message.photo : 
           Word = 'الصور'
@@ -720,12 +730,12 @@ def Multi_loop():
         Details =  f"اسم الملف : \n {File_Name} \n حجم الملف : \n {round(int(Size)/(1024*1024),2)} ميغا بايت  "
         reply_msg.reply(Details)
         
-      elif process in ['PMerge','IMerge','PMake','Zip','TMerge'] : 
+      elif process in ['PMerge','IMerge','PMake','Zip','TMerge','ToArch'] : 
         
         Files_Ids = msg_list[1:-2]
         if process == 'IMerge' :
           Files_Ids = msg_list[1:-3]
-        Process_List = Multi_Op_Dl(bot,dl_path,Files_Ids,user_id)
+        Process_List,Msg_List = Multi_Op_Dl(bot,dl_path,Files_Ids,user_id)
         if process == 'PMerge' : 
           Res_File = Pdf_Merge(Process_List)
         elif process == 'TMerge':
@@ -747,9 +757,15 @@ def Multi_loop():
          Res_File = Pdf_Make(Process_List)
         elif process == 'Zip' :
           Res_File = Zip_Func(dl_path)
-         
         Upld_File(Res_File,File_Msg)
-        if process == 'Zip' :
+
+        if process == 'ToArch' : 
+           Links = upld2arch(Process_List)
+           for ind,Link in enumerate(Links) : 
+             msg = Msg_List[ind]
+             msg.reply(text=Link,reply_to_message_id = msg.id)
+
+        elif process == 'Zip' :
           os.remove(Res_File)
       
       else :
@@ -787,9 +803,6 @@ def Multi_loop():
                   Extract_Dir = Pdf_Extract(File)
                   Msgs_List = Upld_Dir_Func(Extract_Dir,File_Msg)
 
-         elif process == 'ToArch' : 
-           Link = upld2arch(File)
-           File_Msg.reply(text=Link,reply_to_message_id = File_Msg.id)
 
          elif process in ['Ocr','Trans']:
             
@@ -864,7 +877,7 @@ def Multi_loop():
 
 ###### Bot Funcs #####
 
-@bot.on_message((filters.command('P_Clear') | filters.command('IM_Clear') | filters.command('A_Clear') | filters.command('V_Clear') | filters.command('IP_Clear') | filters.command('Z_Clear') | filters.command('T_Clear') ) & filters.private)
+@bot.on_message((filters.command('P_Clear') | filters.command('IM_Clear') | filters.command('A_Clear') | filters.command('V_Clear') | filters.command('IP_Clear') | filters.command('Z_Clear') | filters.command('T_Clear') | filters.command('AU_Clear')) & filters.private)
 def command1(bot,message):
   
    User_Id = message.from_user.id
@@ -896,13 +909,17 @@ def command1(bot,message):
      Method = 'Zip'
      Key = f'{Method}_{User_Id}'
 
+   elif message.text.strip() == '/AU_Clear':
+        Method = 'AUpload'
+        Key = f'{Method}_{User_Id}'
+
    Reply_Id = Merge_Quee[Key][0][0]
    Replied_Msg = Get_Msg(bot,User_Id,Reply_Id)
    Replied_Msg.edit_text('تم الإلغاء ✅')
    del Merge_Quee[Key]
 
 
-@bot.on_message((filters.command('P_Finish') | filters.command('IM_Finish') | filters.command('A_Finish') | filters.command('V_Finish') | filters.command('IP_Finish') | filters.command('Z_Finish') | filters.command('T_Finish') ) & filters.private)
+@bot.on_message((filters.command('P_Finish') | filters.command('IM_Finish') | filters.command('A_Finish') | filters.command('V_Finish') | filters.command('IP_Finish') | filters.command('Z_Finish') | filters.command('T_Finish') | filters.command('AU_Finish') ) & filters.private)
 def command1(bot,message):
   
    User_Id = message.from_user.id
@@ -934,9 +951,13 @@ def command1(bot,message):
      Method = 'Zip'
      Key = f'{Method}_{User_Id}'
 
+   elif message.text.strip() == '/AU_Finish':
+        Method = 'AUpload'
+        Key = f'{Method}_{User_Id}'
+
    Replied_Msg_id = Merge_Quee[Key][0][0]
    Replied_Msg = Get_Msg(bot,User_Id,Replied_Msg_id)
-   if len(Merge_Quee[Key][1]) < 2 and not Method in ('PMake','Zip') :
+   if len(Merge_Quee[Key][1]) < 2 and not Method in ('PMake','Zip','AUpload') :
         Replied_Msg.edit_text("لقد أرسلت ملفاً واحداً فقط !")
         return
    else :
@@ -975,9 +996,14 @@ def _telegram_file(client, message):
   Pmake_Key = f'PMake_{User_Id}'
   PMerge_Key = f'PMerge_{User_Id}'
   TMerge_Key = f'TMerge_{User_Id}'
+  AUpload_Key = f'AUpload_{User_Id}'
+
   if Zip_Key in list(Merge_Quee.keys()):
     Universal_Concat(message,Merge_Quee,Zip_Key)
     return
+  elif AUpload_Key in list(Merge_Quee.keys()):
+      Universal_Concat(message,Merge_Quee,AUpload_Key)
+      return
   else :
       
     if IMerge_Key in list(Merge_Quee.keys()):
@@ -1050,7 +1076,7 @@ def callback_query(CLIENT,CallbackQuery):
   if Method == 'Yes':
     CallbackQuery.edit_message_text("أهلا بك 🌿 ")
 
-  elif Method in ('PMake','PMerge','IMerge','Zip','TMerge') :
+  elif Method in ('PMake','PMerge','IMerge','Zip','TMerge','ToArch') :
     if Method == 'PMerge':
       Word = 'الملفات'
       Cmd = '/P_Finish'
@@ -1059,6 +1085,10 @@ def callback_query(CLIENT,CallbackQuery):
       Word = 'الملفات'
       Cmd = '/Z_Finish'
       C_Cmd = '/Z_Clear'
+    elif Method == 'ToArch':
+          Word = 'الملفات'
+          Cmd = '/AU_Finish'
+          C_Cmd = '/AU_Clear'
     elif Method == 'TMerge':
       Word = 'الملفات'
       Cmd = '/T_Finish'
@@ -1136,7 +1166,7 @@ def callback_query(CLIENT,CallbackQuery):
    
    file_msg.reply_text(Text,reply_markup=ForceReply(True),reply_to_message_id=file_msg.id)
   
-  elif Method in ('Ocr','2Pdf','Det','Ex','Marg','Unlock','Compress','ToArch') :
+  elif Method in ('Ocr','2Pdf','Det','Ex','Marg','Unlock','Compress') :
    
     replied = CallbackQuery.edit_message_text(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
     File_Id = Callback_List[-1]

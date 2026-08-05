@@ -626,11 +626,13 @@ def Universal_Concat(message,Merge_Quee,Method):
         Cmd = '/Z_Finish'
         C_Cmd = '/Z_Clear'
         process = 'الحزم'
+        Type =  'ملفاً'
       elif method == 'ToArch':
         Word = 'الملفات'
         Cmd = '/AU_Finish'
         C_Cmd = '/AU_Clear'
         process = 'الرفع'
+        Type =  'ملفاً'
       else :
         if message.text : 
           Word = 'النصوص'
@@ -638,6 +640,7 @@ def Universal_Concat(message,Merge_Quee,Method):
             Cmd = '/FTranslate'
             C_Cmd = '/cancel_translate'
             process = 'الترجمة'
+            Type =  'نصاً'
 
         elif message.photo : 
           Word = 'الصور'
@@ -649,8 +652,8 @@ def Universal_Concat(message,Merge_Quee,Method):
             Cmd = '/IP_Finish'
             C_Cmd = '/IP_Clear'
             process = 'صناعة pdf'
+          Type =  'صورة'
 
-        
 
         elif message.document : 
           if message.document.file_name.lower().endswith(Image_forms) : 
@@ -663,20 +666,23 @@ def Universal_Concat(message,Merge_Quee,Method):
               Cmd = '/IP_Finish'
               C_Cmd = '/IP_Clear'
               process = 'صناعة pdf'
+            Type =  'صورة'
           elif message.document.file_name.lower().endswith(('pdf','ppt','pptx','mdx')) : 
             Word = 'الملفات'
             Cmd = '/P_Finish'
             C_Cmd = '/P_Clear'
             process = 'الدمج'
+            Type =  'ملفاً'
           
           elif message.document.file_name.lower().endswith('txt') : 
             Word = 'الملفات'
             Cmd = '/T_Finish'
             C_Cmd = '/T_Clear'
             process = 'الدمج'
+            Type =  'ملفاً'
             
       M_Text = f"""
-      ▪️عدد {Word} 👈 {len(Merge_Quee[Method][1])} ملفاً
+      ▪️عدد {Word} 👈 {len(Merge_Quee[Method][1])} {Type}
       ▪️بعد الانتهاء اضغط الأمر 
       {Cmd}
       ▪️لإلغاء عملية {process} ، اضغط الأمر 
@@ -832,10 +838,17 @@ def Multi_loop():
               if process == 'Trans' :
                 Trans_Model = msg_list[3]
                 if Trans_Model == 'GTrans' : 
+                    Txt_File = f"{str(random.randint(0,1000)).xfill(4)}_Translated.txt"
+                    Key = f"{process}_{user_id}"
+                    Text_Ids = Merge_Quee[Key][1]
+                    for textid in Text_Ids : 
+                      with open(Txt_File,'a') as f : 
+                        msg = Get_Msg(bot,user_id,textid)
+                        f.write(msg.text + T_linebreak )
                     Txt_File = Google_Trans_Txt(Txt_File,Rate)
                     File_Msg.reply_document(Txt_File)
                     Send_Text_Res(File_Msg,open(Txt_File,'r').read())
-
+                    del Merge_Quee[Key]
             else : 
 
               if File.lower().endswith('txt'):
@@ -1047,7 +1060,7 @@ def command1(bot,message):
 @bot.on_message(filters.command('translate') & filters.private)
 def command1(bot,message):
        User_Id = message.from_user.id
-       Cmd = "FTranslate"
+       Cmd = "/FTranslate"
        C_Cmd = "/cancel_translate"
        Method = "Trans"
        Word = "النصوص"

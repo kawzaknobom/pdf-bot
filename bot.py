@@ -1,4 +1,4 @@
-from pyrogram.types import InlineKeyboardMarkup , InlineKeyboardButton , CallbackQuery , ForceReply,Message,ReplyKeyboardMarkup, KeyboardButton,ReplyKeyboardRemove
+from pyrogram.types import InlineKeyboardMarkup , InlineKeyboardButton , CallbackQuery , ForceReply,Message,ReplyKeyboardMarkup, KeyboardButton,ReplyKeyboardRemove,BotCommand
 from pyrogram import Client, filters,StopTransmission,idle
 from pyrogram.errors import FloodWait
 from pyrogram.enums import MessageEntityType
@@ -37,13 +37,15 @@ admins = os.environ['admins']
 Admins = admins.split(',')
 
 
-
 def Pyrogram_Client(Bot_Token):
   Bot_Identifier = Bot_Token.split(':')[0]
   Session_file = Bot_Identifier+'_session_prm_bot'
   bot = Client(Session_file,api_id=Api_Id,api_hash=Api_Hash,bot_token=Bot_Token)
   return bot,Bot_Identifier
 bot,Bot_Identifier = Pyrogram_Client(Bot_Token)
+
+
+
 
 #####
 
@@ -377,6 +379,8 @@ def Get_Name(Msg):
     Name = Msg.document.file_name
   elif Msg.photo :
     Name = Msg.photo.file_id
+  elif Msg.text:
+    Name = Msg.id
   return Name 
 
 def Txt_Merge(FilesList):
@@ -621,19 +625,31 @@ def Universal_Concat(message,Merge_Quee,Method):
         Word = 'الملفات'
         Cmd = '/Z_Finish'
         C_Cmd = '/Z_Clear'
+        process = 'الحزم'
       elif method == 'ToArch':
         Word = 'الملفات'
         Cmd = '/AU_Finish'
         C_Cmd = '/AU_Clear'
+        process = 'الرفع'
       else :
-        if message.photo : 
+        if message.text : 
+          Word = 'النصوص'
+          if method == 'Trans' :
+            Cmd = '/Translate'
+            C_Cmd = '/cancel_translate'
+            process = 'الترجمة'
+
+        elif message.photo : 
           Word = 'الصور'
           if method == 'IMerge' :
             Cmd = '/IM_Finish'
             C_Cmd = '/IM_Clear'
+            process = 'الدمج'
           else :
             Cmd = '/IP_Finish'
             C_Cmd = '/IP_Clear'
+            process = 'صناعة pdf'
+
         
 
         elif message.document : 
@@ -642,26 +658,31 @@ def Universal_Concat(message,Merge_Quee,Method):
             if method == 'IMerge' :
               Cmd = '/IM_Finish'
               C_Cmd = '/IM_Clear'
+              process = 'الدمج'
             else :
               Cmd = '/IP_Finish'
               C_Cmd = '/IP_Clear'
+              process = 'صناعة pdf'
           elif message.document.file_name.lower().endswith(('pdf','ppt','pptx','mdx')) : 
             Word = 'الملفات'
             Cmd = '/P_Finish'
             C_Cmd = '/P_Clear'
+            process = 'الدمج'
           
           elif message.document.file_name.lower().endswith('txt') : 
             Word = 'الملفات'
             Cmd = '/T_Finish'
             C_Cmd = '/T_Clear'
+            process = 'الدمج'
             
       M_Text = f"""
       ▪️عدد {Word} 👈 {len(Merge_Quee[Method][1])} ملفاً
       ▪️بعد الانتهاء اضغط الأمر 
       {Cmd}
-      ▪️لإلغاء عملية الدمج ، اضغط الأمر 
+      ▪️لإلغاء عملية {process} ، اضغط الأمر 
       {C_Cmd}
       """
+      
       Replied_Msg = Get_Msg(bot,User_Id,Merge_Quee[Method][0][0])
       Replied_Msg.edit_text(M_Text)
 
@@ -709,7 +730,7 @@ def Multi_loop():
     user_id = int(msg_list[-1])
     reply_msg = Get_Msg(bot,user_id,rp_msg_id)
     File_Msg = Get_Msg(bot,user_id,msg_id)
-    File_Name = Get_Name(File_Msg)
+    File_Name = str(Get_Name(File_Msg))
     if any(x in File_Name for x in ('أحمد السيد','أحمد_السيد','احمد_السيد','احمد السيد')) :
         reply_msg.edit_text('آسف ، لا أخدم لـ [أحمد السيد](https://telegra.ph/من-هو-أحمد-السيد-03-26) 🌿',disable_web_page_preview=True)
     else :
@@ -771,10 +792,11 @@ def Multi_loop():
       
       else :
        Rate = msg_list[2]
-       if not (File_Msg.photo or File_Msg.video or File_Msg.audio or File_Msg.voice or (File_Msg.document and not File_Msg.document.file_name.lower().endswith(('pdf','ppt','pptx','mdx'))) or (File_Msg.document and File_Msg.document.file_name.lower().endswith(('pdf','ppt','pptx','mdx')) and int(int(File_Msg.document.file_size)/(1024*1024)) <= 500 )) :
+       if not (File_Msg.photo or File_Msg.text or File_Msg.video or File_Msg.audio or File_Msg.voice or (File_Msg.document and not File_Msg.document.file_name.lower().endswith(('pdf','ppt','pptx','mdx'))) or (File_Msg.document and File_Msg.document.file_name.lower().endswith(('pdf','ppt','pptx','mdx')) and int(int(File_Msg.document.file_size)/(1024*1024)) <= 500 )) :
         File_Msg.reply(f'حد الملف {Ex_Pdf_Limit} ميغا')
        else : 
-         File = File_Dl(File_Msg,dl_path)
+         if not File_Msg.text :
+          File = File_Dl(File_Msg,dl_path)
          if process == 'Trim' :
            if '|' in Rate : 
               Rate = Rate.replace('|',' ')
@@ -806,27 +828,37 @@ def Multi_loop():
 
 
          elif process in ['Ocr','Trans']:
+            if File_Msg.text : 
+              if process == 'Trans' :
+                Trans_Model = msg_list[3]
+                if Trans_Model == 'GTrans' : 
+                    Txt_File = Google_Trans_Txt(Txt_File,Rate)
+                    File_Msg.reply_document(Txt_File)
+                    Send_Text_Res(File_Msg,open(Txt_File,'r').read())
+
+            else : 
+
+              if File.lower().endswith('txt'):
+                Txt_File = File
+              else :
+                if File.endswith('PDF'):
+                  os.rename(File,File.lower())
+                  File = File.lower()
+                  
+                if File.lower().endswith('pdf'):
+                  Txt_File = pdf_ocr_func(File)
+                elif File.lower().endswith(Image_forms):
+                  Txt_File,Docx_File = Ocr_Func(File)
             
-            if File.lower().endswith('txt'):
-              Txt_File = File
-            else :
-              if File.endswith('PDF'):
-                os.rename(File,File.lower())
-                File = File.lower()
-                
-              if File.lower().endswith('pdf'):
-                Txt_File = pdf_ocr_func(File)
-              elif File.lower().endswith(Image_forms):
-                Txt_File,Docx_File = Ocr_Func(File)
-          
-            if process == 'Trans' :
-              Trans_Model = msg_list[3]
-              if Trans_Model == 'GTrans' : 
-                  Txt_File = Google_Trans_Txt(Txt_File,Rate)
-            if File.lower().endswith(Image_forms):
-              Send_Text_Res(File_Msg,open(Txt_File,'r').read())
-            else :
-              File_Msg.reply_document(Txt_File)
+
+              if process == 'Trans' :
+                Trans_Model = msg_list[3]
+                if Trans_Model == 'GTrans' : 
+                    Txt_File = Google_Trans_Txt(Txt_File,Rate)
+              if File.lower().endswith(Image_forms):
+                Send_Text_Res(File_Msg,open(Txt_File,'r').read())
+              else :
+                File_Msg.reply_document(Txt_File)
          
   
          elif process in ('Compress','Marg','Unlock','Renm') :
@@ -878,7 +910,7 @@ def Multi_loop():
 
 ###### Bot Funcs #####
 
-@bot.on_message((filters.command('P_Clear') | filters.command('IM_Clear') | filters.command('A_Clear') | filters.command('V_Clear') | filters.command('IP_Clear') | filters.command('Z_Clear') | filters.command('T_Clear') | filters.command('AU_Clear')) & filters.private)
+@bot.on_message((filters.command('P_Clear') | filters.command('IM_Clear') | filters.command('A_Clear') | filters.command('V_Clear') | filters.command('IP_Clear') | filters.command('Z_Clear') | filters.command('T_Clear') | filters.command('AU_Clear') | filters.command('cancel_translate') ) & filters.private)
 def command1(bot,message):
   
    User_Id = message.from_user.id
@@ -914,13 +946,17 @@ def command1(bot,message):
         Method = 'ToArch'
         Key = f'{Method}_{User_Id}'
 
+   elif message.text.strip() == '/cancel_translate':
+           Method = 'Trans'
+           Key = f'{Method}_{User_Id}'
+
    Reply_Id = Merge_Quee[Key][0][0]
    Replied_Msg = Get_Msg(bot,User_Id,Reply_Id)
    Replied_Msg.edit_text('تم الإلغاء ✅')
    del Merge_Quee[Key]
 
 
-@bot.on_message((filters.command('P_Finish') | filters.command('IM_Finish') | filters.command('A_Finish') | filters.command('V_Finish') | filters.command('IP_Finish') | filters.command('Z_Finish') | filters.command('T_Finish') | filters.command('AU_Finish') ) & filters.private)
+@bot.on_message((filters.command('P_Finish') | filters.command('IM_Finish') | filters.command('A_Finish') | filters.command('V_Finish') | filters.command('IP_Finish') | filters.command('Z_Finish') | filters.command('T_Finish') | filters.command('AU_Finish') | filters.command('Translate')) & filters.private)
 def command1(bot,message):
   
    User_Id = message.from_user.id
@@ -956,20 +992,38 @@ def command1(bot,message):
         Method = 'ToArch'
         Key = f'{Method}_{User_Id}'
 
+   elif message.text.strip() == '/Translate':
+        Method = 'Trans'
+        Key = f'{Method}_{User_Id}'
+
    Replied_Msg_id = Merge_Quee[Key][0][0]
    Replied_Msg = Get_Msg(bot,User_Id,Replied_Msg_id)
-   if len(Merge_Quee[Key][1]) < 2 and not Method in ('PMake','Zip','ToArch') :
+   if len(Merge_Quee[Key][1]) < 2 and not Method in ('PMake','Zip','ToArch','Translate') :
         Replied_Msg.edit_text("لقد أرسلت ملفاً واحداً فقط !")
         return
    else :
-     if Method == 'IMerge':
-        Replied_Msg.delete()
-        MERGE_MODE_IMAGE = "اختر نمط الدمج "
-        Merge_Modes = [['أفقياً','SBS'],['رأسياً','UD']]
-        MERGE_MODE_Buttons = []
-        for Mod in Merge_Modes : 
-         MERGE_MODE_Buttons.append([InlineKeyboardButton(Mod[0],callback_data=f'IMerge_{Mod[1]}_{message.from_user.id}')])
-        message.reply(text = MERGE_MODE_IMAGE,reply_markup = InlineKeyboardMarkup(MERGE_MODE_Buttons))
+     if Method in ['IMerge','Trans'] :
+       
+      Replied_Msg.delete()
+      if Method == 'IMerge':
+          Text = "اختر نمط الدمج "
+          Modes = [['أفقياً','SBS'],['رأسياً','UD']]
+          Buttons = []
+          for Mod in Modes : 
+            Buttons.append([InlineKeyboardButton(Mod[0],callback_data=f'IMerge_{Mod[1]}_{message.from_user.id}')])
+
+      elif Method == 'Trans':
+          Text = "اختر اللغة المراد الترجمة إليها"
+          Buttons = []
+          for lang in g_langs : 
+            Rom_Num = int(len(g_langs)/3)
+            Data = f"{Method}_{message.id}_{lang.split('|')[-1].strip()}"
+            if g_langs.index(lang) > Rom_Num-1 :
+              Buttons[g_langs.index(lang)%Rom_Num].append(InlineKeyboardButton(lang.split('|')[0],callback_data=Data))
+            else : 
+              Buttons.append([InlineKeyboardButton(lang.split('|')[0],callback_data=Data)])
+      
+      message.reply(text = Text,reply_markup = InlineKeyboardMarkup(Buttons))
      else :
       Quee = public_q 
       replied = Replied_Msg.edit_text(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
@@ -984,8 +1038,37 @@ def command1(bot,message):
 def command1(bot,message):
    User_Id = message.from_user.id
    message.reply(' تصميم \n\n @sunnay6626')
-   #My_Db.Insert_User(message.from_user.id)
-  
+   with bot:
+    bot.set_bot_commands([
+        BotCommand("start", "بدء "),
+        BotCommand("translate", " تفعيل الترجمة"),
+        BotCommand("cancel_translate", "إلغاء الترجمة")
+    ])
+
+@bot.on_message(filters.command('translate') & filters.private)
+def command1(bot,message):
+       User_Id = message.from_user.id
+       Cmd = "Translate"
+       C_Cmd = "/cancel_translate"
+       Method = "Trans"
+       Word = "النصوص"
+       Key = f'{Method}_{User_Id}'
+       if Key in list(Merge_Quee.keys()):
+        del Merge_Quee[Key]
+       Merge_Quee[Key] = [[],[]]
+       M_Text = f"""
+       أرسل النص المراد ترجمته 
+         ▪️عدد {Word} 👈 {len(Merge_Quee[Key][1])} نصاً
+         ▪️بعد الانتهاء اضغط الأمر 
+         {Cmd}
+         ▪️لإلغاء عملية الترجمة ، اضغط الأمر 
+         {C_Cmd}
+         """
+       Replied = message.reply(M_Text)
+       Merge_Quee[Key][0].append(Replied.id)
+
+
+     
 #####
 
 @bot.on_message(filters.private & filters.incoming & (filters.photo | filters.audio | filters.voice | filters.video | filters.document ))
@@ -998,6 +1081,7 @@ def _telegram_file(client, message):
   PMerge_Key = f'PMerge_{User_Id}'
   TMerge_Key = f'TMerge_{User_Id}'
   AUpload_Key = f'ToArch_{User_Id}'
+  Trans_Key = f'Trans_{User_Id}'
 
   if Zip_Key in list(Merge_Quee.keys()):
     Universal_Concat(message,Merge_Quee,Zip_Key)
@@ -1006,8 +1090,11 @@ def _telegram_file(client, message):
       Universal_Concat(message,Merge_Quee,AUpload_Key)
       return
   else :
-      
-    if IMerge_Key in list(Merge_Quee.keys()):
+    if Trans_Key in list(Merge_Quee.keys()): 
+      if message.text : 
+        Universal_Concat(message,Merge_Quee,Trans_Key)
+        return
+    elif IMerge_Key in list(Merge_Quee.keys()):
      if message.photo or message.document.file_name.lower().endswith(Image_forms):
       Universal_Concat(message,Merge_Quee,IMerge_Key)
       return

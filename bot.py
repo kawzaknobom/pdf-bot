@@ -635,7 +635,7 @@ def Universal_Concat(message,Merge_Quee,Method):
         if message.text : 
           Word = 'النصوص'
           if method == 'Trans' :
-            Cmd = '/Translate'
+            Cmd = '/FTranslate'
             C_Cmd = '/cancel_translate'
             process = 'الترجمة'
 
@@ -956,7 +956,7 @@ def command1(bot,message):
    del Merge_Quee[Key]
 
 
-@bot.on_message((filters.command('P_Finish') | filters.command('IM_Finish') | filters.command('A_Finish') | filters.command('V_Finish') | filters.command('IP_Finish') | filters.command('Z_Finish') | filters.command('T_Finish') | filters.command('AU_Finish') | filters.command('Translate')) & filters.private)
+@bot.on_message((filters.command('P_Finish') | filters.command('IM_Finish') | filters.command('A_Finish') | filters.command('V_Finish') | filters.command('IP_Finish') | filters.command('Z_Finish') | filters.command('T_Finish') | filters.command('AU_Finish') | filters.command('FTranslate')) & filters.private)
 def command1(bot,message):
   
    User_Id = message.from_user.id
@@ -992,13 +992,13 @@ def command1(bot,message):
         Method = 'ToArch'
         Key = f'{Method}_{User_Id}'
 
-   elif message.text.strip() == '/Translate':
+   elif message.text.strip() == '/FTranslate':
         Method = 'Trans'
         Key = f'{Method}_{User_Id}'
 
    Replied_Msg_id = Merge_Quee[Key][0][0]
    Replied_Msg = Get_Msg(bot,User_Id,Replied_Msg_id)
-   if len(Merge_Quee[Key][1]) < 2 and not Method in ('PMake','Zip','ToArch','Translate') :
+   if len(Merge_Quee[Key][1]) < 2 and not Method in ('PMake','Zip','ToArch','Trans') :
         Replied_Msg.edit_text("لقد أرسلت ملفاً واحداً فقط !")
         return
    else :
@@ -1047,7 +1047,7 @@ def command1(bot,message):
 @bot.on_message(filters.command('translate') & filters.private)
 def command1(bot,message):
        User_Id = message.from_user.id
-       Cmd = "Translate"
+       Cmd = "FTranslate"
        C_Cmd = "/cancel_translate"
        Method = "Trans"
        Word = "النصوص"

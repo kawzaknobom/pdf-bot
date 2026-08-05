@@ -841,7 +841,7 @@ def Multi_loop():
               if process == 'Trans' :
                 Trans_Model = msg_list[3]
                 if Trans_Model == 'GTrans' : 
-                    Txt_File = f"{str(random.randint(0,1000)).zfillfill(4)}_Translated.txt"
+                    Txt_File = f"{str(random.randint(0,1000)).zfill(4)}_Translated.txt"
                     Key = f"{process}_{user_id}"
                     Text_Ids = Merge_Quee[Key][1]
                     for textid in Text_Ids : 

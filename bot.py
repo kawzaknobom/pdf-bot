@@ -836,18 +836,19 @@ def Multi_loop():
             if File_Msg.text : 
               if process == 'Trans' :
                 Trans_Model = msg_list[3]
-                if Trans_Model == 'GTrans' : 
-                    Txt_File = f"{dl_path}{str(random.randint(0,1000)).zfill(4)}.txt"
-                    Key = f"{process}_{user_id}"
-                    Text_Ids = Merge_Quee[Key][1]
-                    for textid in Text_Ids : 
-                      with open(Txt_File,'a') as f : 
+                Check_Dir(dl_path)
+                Txt_File = f"{dl_path}{str(random.randint(0,1000)).zfill(4)}.txt"
+                Key = f"{process}_{user_id}"
+                Text_Ids = Merge_Quee[Key][1]
+                for textid in Text_Ids : 
+                  with open(Txt_File,'a') as f : 
                         msg = Get_Msg(bot,user_id,textid)
                         f.write(msg.text + T_linebreak )
+                if Trans_Model == 'GTrans' : 
                     Txt_File = Google_Trans_Txt(Txt_File,Rate)
-                    File_Msg.reply_document(Txt_File)
-                    Send_Text_Res(File_Msg,open(Txt_File,'r').read())
-                    del Merge_Quee[Key]
+                File_Msg.reply_document(Txt_File)
+                Send_Text_Res(File_Msg,open(Txt_File,'r').read())
+                del Merge_Quee[Key]
             else : 
 
               if File.lower().endswith('txt'):

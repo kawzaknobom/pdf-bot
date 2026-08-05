@@ -1038,8 +1038,7 @@ def command1(bot,message):
 def command1(bot,message):
    User_Id = message.from_user.id
    message.reply(' تصميم \n\n @sunnay6626')
-   with bot:
-    bot.set_bot_commands([
+   bot.set_bot_commands([
         BotCommand("start", "بدء "),
         BotCommand("translate", " تفعيل الترجمة"),
         BotCommand("cancel_translate", "إلغاء الترجمة")

@@ -635,10 +635,8 @@ def Universal_Concat(message,Merge_Quee,Method):
         Type =  'ملفاً'
       else :
         if message.text : 
-          print('yes')
           Word = 'النصوص'
           if method == 'Trans' :
-            print('yes')
             Cmd = '/FTranslate'
             C_Cmd = '/cancel_translate'
             process = 'الترجمة'
@@ -683,7 +681,6 @@ def Universal_Concat(message,Merge_Quee,Method):
             process = 'الدمج'
             Type =  'ملفاً'
             
-      print('yes')
       M_Text = f"""
       ▪️عدد {Word} 👈 {len(Merge_Quee[Method][1])} {Type}
       ▪️بعد الانتهاء اضغط الأمر 
@@ -691,7 +688,6 @@ def Universal_Concat(message,Merge_Quee,Method):
       ▪️لإلغاء عملية {process} ، اضغط الأمر 
       {C_Cmd}
       """
-      print('yes')
       Replied_Msg = Get_Msg(bot,User_Id,Merge_Quee[Method][0][0])
       Replied_Msg.edit_text(M_Text)
 
@@ -841,7 +837,7 @@ def Multi_loop():
               if process == 'Trans' :
                 Trans_Model = msg_list[3]
                 if Trans_Model == 'GTrans' : 
-                    Txt_File = f"{str(random.randint(0,1000)).zfill(4)}_Translated.txt"
+                    Txt_File = f"{dl_path}{str(random.randint(0,1000)).zfill(4)}.txt"
                     Key = f"{process}_{user_id}"
                     Text_Ids = Merge_Quee[Key][1]
                     for textid in Text_Ids : 
@@ -1105,14 +1101,8 @@ def _telegram_file(client, message):
       Universal_Concat(message,Merge_Quee,AUpload_Key)
       return
   else :
-    print('yes')
-    if Trans_Key in list(Merge_Quee.keys()): 
-      print('yes')
-      if message.text : 
-        print('yes')
-        Universal_Concat(message,Merge_Quee,Trans_Key)
-        return
-    elif IMerge_Key in list(Merge_Quee.keys()):
+    
+    if IMerge_Key in list(Merge_Quee.keys()):
      if message.photo or message.document.file_name.lower().endswith(Image_forms):
       Universal_Concat(message,Merge_Quee,IMerge_Key)
       return
@@ -1315,6 +1305,17 @@ def refunc(client,message):
 ##############
 
 
+@bot.on_message(filters.private & filters.incoming & (filters.text))
+def _telegram_file(client, message):
+    
+  User_Id = message.from_user.id
+  Trans_Key = f'Trans_{User_Id}'
+  if Trans_Key in list(Merge_Quee.keys()): 
+      if message.text : 
+        Universal_Concat(message,Merge_Quee,Trans_Key)
+        return
+
+      
 def main():
     try:
         bot.start()

@@ -97,7 +97,6 @@ Compress_Op = [['ضغط','Compress']]
 Trim_Op = [['قص','Trim']]
 To_Pdf_Opt = [['Conv to Pdf ','2Pdf']]
 Pdf_Options = [['دمج','PMerge'],['Ocr','Ocr'],['فك قفل طباعة','Unlock'],['بلا حواشي','Marg']]  + Trim_Op + Cbx_Option + Compress_Op
-Ppf_Opts = Pdf_Options + To_Pdf_Opt
 Pdf_Txt_Option = Other_Options + Trim_Op + Translate_Opts + [['دمج','TMerge']]
 Pdf_Image_Option = [['صنع بدف','PMake']]
 Pdf_Multi_Options = ['PMerge']
@@ -667,7 +666,7 @@ def Universal_Concat(message,Merge_Quee,Method):
               C_Cmd = '/IP_Clear'
               process = 'صناعة pdf'
             Type =  'صورة'
-          elif message.document.file_name.lower().endswith(('pdf','ppt','pptx','mdx')) : 
+          elif message.document.file_name.lower().endswith(('pdf')) : 
             Word = 'الملفات'
             Cmd = '/P_Finish'
             C_Cmd = '/P_Clear'
@@ -797,7 +796,7 @@ def Multi_loop():
       
       else :
        Rate = msg_list[2]
-       if not (File_Msg.photo or File_Msg.text or File_Msg.video or File_Msg.audio or File_Msg.voice or (File_Msg.document and not File_Msg.document.file_name.lower().endswith(('pdf','ppt','pptx','mdx'))) or (File_Msg.document and File_Msg.document.file_name.lower().endswith(('pdf','ppt','pptx','mdx')) and int(int(File_Msg.document.file_size)/(1024*1024)) <= 500 )) :
+       if not (File_Msg.photo or File_Msg.text or File_Msg.video or File_Msg.audio or File_Msg.voice or (File_Msg.document and not File_Msg.document.file_name.lower().endswith(('pdf'))) or (File_Msg.document and File_Msg.document.file_name.lower().endswith(('pdf')) and int(int(File_Msg.document.file_size)/(1024*1024)) <= 500 )) :
         File_Msg.reply(f'حد الملف {Ex_Pdf_Limit} ميغا')
        else : 
          if not File_Msg.text :
@@ -1128,11 +1127,9 @@ def _telegram_file(client, message):
    if message.document.file_name.lower().endswith(Image_forms) : 
       Options = Photo_Options + Pdf_Image_Option
    
-   elif message.document.file_name.lower().endswith(('pdf','ppt','pptx','mdx')) : 
+   elif message.document.file_name.lower().endswith(('pdf')) : 
        if message.document.file_name.lower().endswith('pdf'):
         Options = Pdf_Options
-       else :
-         Options = Ppf_Opts
    
    elif message.document.file_name.lower().endswith('txt') : 
      
@@ -1144,8 +1141,10 @@ def _telegram_file(client, message):
   elif message.video or message.audio or message.voice or message.video_note :
     Options = Other_Options
 
-  if str(User_Id) in admins : 
-   Options += Premium_Opts
+  if str(User_Id) in admins :
+   for elm in Premium_Opts : 
+    if elm not in Options : 
+      Options += [elm]
   CHOOSE_UR_BUTTONS = []
   CHOOSE_UR_Option = "اختر ما تريد "
   for Index,option in enumerate(Options) : 
@@ -1256,7 +1255,7 @@ def callback_query(CLIENT,CallbackQuery):
      Text = Renm_msg
    elif Method == 'Trim' :
      if file_msg.document :
-       if file_msg.document.file_name.lower().endswith(('pdf','ppt','pptx','mdx')):
+       if file_msg.document.file_name.lower().endswith(('pdf')):
          Text = Pdf_Trim_Msg
        elif file_msg.document.file_name.lower().endswith('txt'):
         Text = Txt_Trim_Msg

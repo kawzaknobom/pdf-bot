@@ -552,7 +552,12 @@ def pdf_ocr_func(Ocr_Path):
   with open(Text_File,'a') as f :
     for img in Img_List : 
       Txt,docx = Ocr_Func(img)
-      f.write(open(Txt,'r').read() + T_linebreak)
+      Text = open(Txt,'r').read()
+      if len(Text.strip()) == 0 :
+        os.remove(Txt)
+        time.sleep(5)
+        Txt,docx = Ocr_Func(img)
+      f.write( Text + T_linebreak)
       os.remove(Txt)
   return Text_File
 

@@ -557,6 +557,7 @@ def pdf_ocr_func(Ocr_Path):
         os.remove(Txt)
         time.sleep(5)
         Txt,docx = Ocr_Func(img)
+        Text = open(Txt,'r').read()
       f.write( Text + T_linebreak)
       os.remove(Txt)
   return Text_File

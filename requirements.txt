@@ -17,6 +17,7 @@ requests
 googletrans
 tahweel
 internetarchive
+static_ffmpeg
 
 tgbot-ping
 Flask

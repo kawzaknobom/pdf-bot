@@ -20,6 +20,9 @@ from math import ceil
 import internetarchive as ia
 from googletrans import Translator
 
+from static_ffmpeg import run
+ffmpeg, _ = run.get_or_fetch_platform_executables_or_raise()
+
 Merge_Quee = {}
 public_q =[]
 Renm_L = []
@@ -73,6 +76,8 @@ LANGS_Modules = [['Google Translate','GTrans']]
 Image_forms = (".jpg",".jpeg",".png",'.tif','webp')
 g_langs = [ 'العربية | ar','الإنجليزية | en','الفرنسية | fr','الألمانية | de','العبرية iw  |  iw','العبرية he | he','اليونانية | el','الأمهرية | am','الباسك | eu','البنغالية | bn','البرتغالية  | pt','البلغارية | bg','الكتالانية | ca','الشيروكية | chr','الكرواتية | hr','التشيكية | cs','الدنماركية | da','الهولندية | nl','الإستونية | et','الفلبينية | fil','الفنلندية | fi','الغوجاراتية | gu','الهندية |  hi','المجرية | hu','الأيسلندية | is ','الإندونيسية | id','الإيطالية | it','اليابانية | ja','الكانادا  | kn','الكورية | ko','اللاتفية | lv','الليتوانية | lt','الماليزية |  ms','المالايالامية | ml','الماراثية |  mr','النرويجية | no','البولندية | pl','الرومانية | ro','الروسية | ru','الصربية | sr','الصينية  | zh-cn','الصينية TW | zh-tw','السلوفاكية | sk','السلوفينية | sl','الإسبانية | es','السواحيلية | sw','السويدية | sv','التاميلية | ta','التيلوغوية | te','التايلاندية | th','التركية|  tr','الأوردية | ur','الأوكرانية | uk','الفيتنامية | vi' ,'الويلزية | cy','الأفريكانية | af', 'الأرمينية | hy','الألبانية | sq','الأذريبيجانية | az','البيلاروسية | be','البوسنية | bs','السبيونوية | ceb','الشيشوانية | ny','الكورسيكية | co', 'الهولندية | nl','الاسبرانتو | eo','الاستوانية | et','الفلبينية | tl','الزولو | zu ','يوروبا | yo','اليديشية | yi','xhosa | xh','الأوزبكية | uz ','أويغور | ug','طاجيكية | tg','السودانية | su','الصومالية | so','السنهالية | si','السندية | sd','شونا | sn','سيسوتو | st','الغيلية | gd','ساموا | sm','رومانية | ro','بنجابية | pa' ,'فارسية | fa','باشتو | ps','أوديا | or','نرويجية | no' ,'نيبالية | ne','ميانمارية | my','منغولية | mn','ماورية | mi','مالطية | mt','قيرغيزستانية | ky','كردية | ku','الخميرية | km','الكازخستانية | kk','الجاوية | jw','الأيرلندية | ga','الإندونيسية | id', 'الإيغبو | ig', 'المجرية | hu', 'همونغ | hmn','هاواي | haw','هاوسا | ha','الكريولية | ht' ,'الجورجية | ka','الجاليكية | gl','الفريزية | fy','لاوية | lo', 'لاتينية | la', 'ليتوانية | lt', 'لوكسمبورغية | lb','المقدونية | mk', 'الملغاشية | mg']
 Ex_Pdf_Limit = 500
+
+Video_Options = [['تحويل','Convert']]
 
 Main_Contract = """
 السلام عليكم ورحمة الله وبركاته 
@@ -603,7 +608,14 @@ def Item_add(Item):
   if not globals()[loop_name] :	
     globals()[loop_name] = True
     Multi_loop()
-    
+
+
+def Mp3_Conv(File):
+  Mp3_File = File.replace('.' + File.split('.')[-1],'_Conv.mp3')
+  Mp3_Cmd = f'ffmpeg -i "{File}" -q:a 0 -map a "{Mp3_File}" -y'
+  os.system(Mp3_Cmd)
+  return Mp3_File
+
 def Pdf_Cases(Case,File,Msg):
   if any(x in Case for x in ('-','/')):
     if '-' in Case : 
@@ -879,7 +891,7 @@ def Multi_loop():
                 File_Msg.reply_document(Txt_File)
          
   
-         elif process in ('Compress','Marg','Unlock','Renm') :
+         elif process in ('Compress','Marg','Unlock','Renm','Convert') :
               
               if process == 'Renm':
                Ext = File.split('.')[-1]
@@ -901,6 +913,8 @@ def Multi_loop():
               elif process == 'Compress' :
                 if File.lower().endswith('pdf'):
                   Res_File = Pdf_Compress(bot,dl_path,File)
+              elif process == 'Convert' :
+                Res_File = Mp3_Conv(File)
               Upld_File(Res_File,File_Msg)
       try :
         reply_msg.edit_text('تمت  ☑️')
@@ -1141,6 +1155,8 @@ def _telegram_file(client, message):
      
      Options = Pdf_Txt_Option
    
+   elif message.video : 
+     Options = Video_Options + Other_Options
    else :
      Options = Other_Options
 
@@ -1268,7 +1284,7 @@ def callback_query(CLIENT,CallbackQuery):
    
    file_msg.reply_text(Text,reply_markup=ForceReply(True),reply_to_message_id=file_msg.id)
   
-  elif Method in ('Ocr','2Pdf','Det','Ex','Marg','Unlock','Compress') :
+  elif Method in ('Ocr','2Pdf','Det','Ex','Marg','Unlock','Compress','Convert') :
    
     replied = CallbackQuery.edit_message_text(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
     File_Id = Callback_List[-1]

@@ -1155,13 +1155,13 @@ def _telegram_file(client, message):
      
      Options = Pdf_Txt_Option
    
-   elif message.video : 
-     Options = Video_Options + Other_Options
    else :
      Options = Other_Options
 
   elif message.video or message.audio or message.voice or message.video_note :
     Options = Other_Options
+    if message.video or message.video_note : 
+        Options += Video_Options
 
   if str(User_Id) in admins :
    for elm in Premium_Opts : 

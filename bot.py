@@ -612,7 +612,7 @@ def Item_add(Item):
 
 def Mp3_Conv(File):
   Mp3_File = File.replace('.' + File.split('.')[-1],'_Conv.mp3')
-  Mp3_Cmd = f'ffmpeg -i "{File}" -q:a 0 -map a "{Mp3_File}" -y'
+  Mp3_Cmd = f'{ffmpeg} -i "{File}" -q:a 0 -map a "{Mp3_File}" -y'
   os.system(Mp3_Cmd)
   return Mp3_File
 

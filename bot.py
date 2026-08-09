@@ -21,7 +21,7 @@ import internetarchive as ia
 from googletrans import Translator
 
 from static_ffmpeg import run
-ffmpeg, _ = run.get_or_fetch_platform_executables_or_raise()
+ffmpeg, _ = run.get_or_fetch_platform_executables_else_raise()
 
 Merge_Quee = {}
 public_q =[]

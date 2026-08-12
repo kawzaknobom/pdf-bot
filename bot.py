@@ -1418,7 +1418,8 @@ def callback_query(CLIENT,CallbackQuery):
       elif len(Callback_List) == 3 :
         Lang_Mods = LANGS_Modules 
         if str(User_Id) in Admins :
-          Lang_Mods += Gemini_Model_Op
+          if Gemini_Model_Op[0] not in Lang_Mods :
+            Lang_Mods += Gemini_Model_Op
         CHOOSE_UR_Mod = "اختر النموذج "
         LANGS_BUTTONS = []
         for Mod in Lang_Mods : 

@@ -92,7 +92,7 @@ Compress_Op = [['ضغط','Compress']]
 Other_Opts = [['Zip','Zip']]
 Other_Options = [['تسمية','Renm'],['تفاصيل','Det']] + Other_Opts
 T_linebreak = '\n\n ◾ــــــــــــــ◾ \n\n'
-Tr_linebreak = '\n\n 🟥ــــــــــــــ🟥 \n\n'
+Tr_linebreak = '\n\n 🟡ــــــــــــــــــــــــــــــ🟡 \n\n'
 
 Ex_Opt = [['استخراج','Ex']]
 Translate_Opts = [['ترجمة','Trans']]

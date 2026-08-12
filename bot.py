@@ -5,7 +5,7 @@ from pyrogram.enums import MessageEntityType
 
 
 from functools import reduce
-import os,re,random, threading,time,subprocess,asyncio,shutil,img2pdf,json
+import os,re,random, threading,time,subprocess,asyncio,shutil,img2pdf,json,requests
 
 
 from pypdf import PdfReader
@@ -20,6 +20,9 @@ from math import ceil
 import internetarchive as ia
 from googletrans import Translator
 
+from google import genai
+from google.genai import types
+
 from static_ffmpeg import run
 ffmpeg, _ = run.get_or_fetch_platform_executables_else_raise()
 
@@ -28,7 +31,29 @@ public_q =[]
 Renm_L = []
 
 
+def Check_Gtoken(api_key) : 
+    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        return True
+    else:
+        return False
+
+
+def Filter_Apis(Gemini_Tokens):
+  Apis = []
+  Gemini_Tokens = Gemini_Tokens.strip()
+  if ' ' in Gemini_Tokens : 
+    Gemini_Tokens = Gemini_Tokens.split(' ')
+  else : 
+    Gemini_Tokens = [Gemini_Tokens]
+  for Api in Gemini_Tokens : 
+    if Check_Gtoken(Api) :
+        Apis.append(Api)
+  return Apis
+
 #######
+
 Bot_Token = os.environ['Bot_Token']
 Api_Id = os.environ['Api_Id']
 Api_Hash = os.environ['Api_Hash']
@@ -36,6 +61,8 @@ Serv_Acc = os.environ['Service_Acc']
 access_key = os.environ['access_key']
 secret_key = os.environ['secret_key']
 admins = os.environ['admins']
+Gemini_Tokens = os.environ['Gemini_Tokens']
+Apis = Filter_Apis(Gemini_Tokens)
 
 Admins = admins.split(',')
 
@@ -46,7 +73,6 @@ def Pyrogram_Client(Bot_Token):
   bot = Client(Session_file,api_id=Api_Id,api_hash=Api_Hash,bot_token=Bot_Token)
   return bot,Bot_Identifier
 bot,Bot_Identifier = Pyrogram_Client(Bot_Token)
-
 
 
 
@@ -66,18 +92,24 @@ Compress_Op = [['ضغط','Compress']]
 Other_Opts = [['Zip','Zip']]
 Other_Options = [['تسمية','Renm'],['تفاصيل','Det']] + Other_Opts
 T_linebreak = '\n\n ◾ــــــــــــــ◾ \n\n'
+Tr_linebreak = '\n\n 🟥ــــــــــــــ🟥 \n\n'
+
 Ex_Opt = [['استخراج','Ex']]
 Translate_Opts = [['ترجمة','Trans']]
 Cbx_Option =  Ex_Opt + Other_Options + Translate_Opts
 Other_Opts = [['Zip','Zip']]
 Photo_Options = [['دمج','IMerge'],['Ocr','Ocr']]  + Other_Opts + Translate_Opts
 Photo_Multi_Options = ['IMerge','PMake']
+Gemini_Model = [['Gemini Ai','Gemini']]
 LANGS_Modules = [['Google Translate','GTrans']]
 Image_forms = (".jpg",".jpeg",".png",'.tif','webp')
 g_langs = [ 'العربية | ar','الإنجليزية | en','الفرنسية | fr','الألمانية | de','العبرية iw  |  iw','العبرية he | he','اليونانية | el','الأمهرية | am','الباسك | eu','البنغالية | bn','البرتغالية  | pt','البلغارية | bg','الكتالانية | ca','الشيروكية | chr','الكرواتية | hr','التشيكية | cs','الدنماركية | da','الهولندية | nl','الإستونية | et','الفلبينية | fil','الفنلندية | fi','الغوجاراتية | gu','الهندية |  hi','المجرية | hu','الأيسلندية | is ','الإندونيسية | id','الإيطالية | it','اليابانية | ja','الكانادا  | kn','الكورية | ko','اللاتفية | lv','الليتوانية | lt','الماليزية |  ms','المالايالامية | ml','الماراثية |  mr','النرويجية | no','البولندية | pl','الرومانية | ro','الروسية | ru','الصربية | sr','الصينية  | zh-cn','الصينية TW | zh-tw','السلوفاكية | sk','السلوفينية | sl','الإسبانية | es','السواحيلية | sw','السويدية | sv','التاميلية | ta','التيلوغوية | te','التايلاندية | th','التركية|  tr','الأوردية | ur','الأوكرانية | uk','الفيتنامية | vi' ,'الويلزية | cy','الأفريكانية | af', 'الأرمينية | hy','الألبانية | sq','الأذريبيجانية | az','البيلاروسية | be','البوسنية | bs','السبيونوية | ceb','الشيشوانية | ny','الكورسيكية | co', 'الهولندية | nl','الاسبرانتو | eo','الاستوانية | et','الفلبينية | tl','الزولو | zu ','يوروبا | yo','اليديشية | yi','xhosa | xh','الأوزبكية | uz ','أويغور | ug','طاجيكية | tg','السودانية | su','الصومالية | so','السنهالية | si','السندية | sd','شونا | sn','سيسوتو | st','الغيلية | gd','ساموا | sm','رومانية | ro','بنجابية | pa' ,'فارسية | fa','باشتو | ps','أوديا | or','نرويجية | no' ,'نيبالية | ne','ميانمارية | my','منغولية | mn','ماورية | mi','مالطية | mt','قيرغيزستانية | ky','كردية | ku','الخميرية | km','الكازخستانية | kk','الجاوية | jw','الأيرلندية | ga','الإندونيسية | id', 'الإيغبو | ig', 'المجرية | hu', 'همونغ | hmn','هاواي | haw','هاوسا | ha','الكريولية | ht' ,'الجورجية | ka','الجاليكية | gl','الفريزية | fy','لاوية | lo', 'لاتينية | la', 'ليتوانية | lt', 'لوكسمبورغية | lb','المقدونية | mk', 'الملغاشية | mg']
 Ex_Pdf_Limit = 500
+Trim_Op = [['قص','Trim']]
+Media_Options = [['تضخيم','Amplify'],['تسريع','Speeden'],['تبطيئ','Slowen'],['تحويل','Convert'],['تغيير الصوت','Change']] + Compress_Op + Trim_Op +Other_Options
+Video_Options = Media_Options + [['كتم الصوت','Mute'],['إبدال الصوت','SubAud'],['دمج','VMerge']]
+Audio_Options = Media_Options  +  [['دمج','AMerge'],['إزالة الصمت','Silence'],['تقطيع','Frag']]
 
-Video_Options = [['تحويل','Convert']]
 
 Main_Contract = """
 السلام عليكم ورحمة الله وبركاته 
@@ -120,6 +152,7 @@ Txt_Trim_Msg = """
  start ~ end 
 """
 
+
 ### Pdf Funcs ###
 
 
@@ -161,6 +194,129 @@ def Wrap_Text(text,num):
   if '§' in part :
    Text_list[No] = part.replace('§','\n')
  return Text_list 
+
+
+def Grap_Lang(Sym): 
+  for lang in g_langs :
+    if Sym in lang : 
+      F_L = lang.split('|')[0].strip()
+      break
+  return F_L
+
+Gemini_Model = 'gemini-2.5-flash-lite'
+
+
+def Gemini_Trans(Text,lang_sy='ar',Req_Count=0,Api_Index=0):
+  Gemini_Apis = Apis
+  client = genai.Client(api_key=Gemini_Apis[Api_Index])
+  F_L = Grap_Lang(lang_sy)
+  Translate_Prompt = f"""
+ترجم هذا النص بأكمله بدقة إلى {F_L}  👇
+  
+  """ + Text
+  try : 
+    response = client.models.generate_content(model=Gemini_Model, contents=Translate_Prompt)
+    Req_Count += 1
+    Res = Rmv_Trans(response.text)
+    Res = Res + Tr_linebreak + Text + Tr_linebreak
+    return Res,Req_Count
+  except Exception as err : 
+    if 'retry' in str(err):
+         splitted = str(err).split('retry')[1][3:]
+         seconds = int(splitted.split('.')[0])
+         time.sleep(seconds)
+    Req_Count+=1
+    New_Index = Api_Index+1 
+    if New_Index < len(Gemini_Apis):
+      if Req_Count%15 == 0 :
+          time.sleep(60)
+      return Gemini_Trans(Text,lang_sy,Req_Count,New_Index)
+    else :
+      return 'ERROR',Req_Count
+    
+def Gemini_Trans_Txt(Msg,TxtFile,lang_sy='ar'):
+  Txt_File = TxtFile.replace('.txt','_Translated.txt')
+  Check_File(Txt_File)
+  Text = open(TxtFile,'r').read()
+  Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,0,10000)
+  return Txt_File
+  
+def Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,Req_Count=0,Limit=20000):
+  rest = ''
+  with open(Txt_File,'a') as f : 
+    if len(Text) > Limit : 
+      Textlist = Wrap_Text(Text,Limit)
+      for Num,part in enumerate(Textlist) : 
+        if len(rest.strip()) != 0 :
+          part = rest + part
+        if '.' in part :
+          rest = part.split('.')[-1].strip()
+          part = part[:-len(rest)-1]
+        elif '\n' in part :
+          rest = part.split('\n')[-1].strip()
+          part = part[:-len(rest)-1]
+        Txt_Part = TxtFile.replace(' ','_').replace('.txt',f'_P0000{Num}.txt')
+        open(Txt_Part,'a').write(part)
+        Res_Text,Req_Count = Gemini_BTxt(Txt_Part,Req_Count,lang_sy)
+        if Res_Text == 'ERROR' :
+          Res_Text,Req_Count = Gemini_Trans(part,lang_sy,Req_Count)
+        if Res_Text == 'ERROR' :
+          New_Limit = Limit-1000
+          if New_Limit > 0 :
+            return Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,Req_Count,New_Limit)
+          else : 
+           Rest_File = TxtFile.replace('.txt','_Res.txt')
+           with open(Rest_File,'a') as Rf : 
+             for sec in Textlist[Num:]:
+               Rf.write(sec)
+           Msg.reply_document(Txt_File)
+           Msg.reply_document(Rest_File)
+           Msg.reply('انتهت توكنات اليوم 🌿')
+           break
+        f.write(Res_Text)
+      Msg.reply_document(Txt_File)
+    else : 
+      Res_Text,Req_Count = Gemini_BTxt(TxtFile,Req_Count,lang_sy)
+      if Res_Text == 'ERROR' :
+        Res_Text,Req_Count = Gemini_Trans(Text,lang_sy,Req_Count)
+      if Res_Text == 'ERROR' :
+          New_Limit = Limit-1000
+          if New_Limit != 0 :
+            return Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,Req_Count,New_Limit)
+          else : 
+           Msg.reply('انتهت توكنات اليوم 🌿')
+      f.write(Res_Text)
+      
+
+def Gemini_BTxt(TxtFile,Req_Count,lang_sy='ar',Api_Index=0) : 
+  Gemini_Apis = Apis
+  client = genai.Client(api_key=Gemini_Apis[Api_Index])
+  F_L = Grap_Lang(lang_sy)
+  Translate_Prompt = f"""
+ترجم هذا الملف النصي بأكمله بدقة إلى {F_L}  👇
+  
+  """ 
+  try : 
+    file = client.files.upload(file=TxtFile)
+    response = client.models.generate_content(model=Gemini_Model, contents=[Translate_Prompt, file])
+    Res = Rmv_Trans(response.text)
+    Res = Res + Tr_linebreak + open(TxtFile,'r').read() + Tr_linebreak
+    Req_Count += 1
+    return Res,Req_Count
+  except Exception as err : 
+    if 'retry' in str(err):
+       splitted = str(err).split('retry')[1][3:]
+       seconds = int(splitted.split('.')[0])
+       time.sleep(seconds)
+    Req_Count+=1
+    New_Index = Api_Index+1 
+    if New_Index < len(Gemini_Apis):
+      if Req_Count%15 == 0 :
+        time.sleep(60)
+      return Gemini_BTxt(TxtFile,Req_Count,lang_sy,New_Index)
+    else :
+      return 'ERROR',Req_Count
+      #raise ValueError('انتهت توكنات اليوم 🌿')
 
     
 def Google_CTxt(TxtFile,Txt_File,Text,lang_sy,Req_Count=0,Limit=20000):
@@ -207,7 +363,7 @@ async def Google_BTxt(TxtFile,Req_Count,lang_sy='ar') :
       return 'None' ,Req_Count
     else :
       Res =  Rmv_Trans(response.text)
-      Res = Res + T_linebreak + open(TxtFile,'r').read() + T_linebreak
+      Res = Res + Tr_linebreak + open(TxtFile,'r').read() + Tr_linebreak
       Req_Count += 1
       return Res,Req_Count
   except Exception as err : 
@@ -392,7 +548,7 @@ def Txt_Merge(FilesList):
   with open(Res_File,'a') as f :
     for file in FilesList :
       Text = open(file,'r').read()
-      f.write(Text+T_linebreak)
+      f.write(Text+Tr_linebreak)
   return Res_File
 
 def Multi_Op_Dl(bot,dl_path,Files_Ids,User_Id,Del_Orig=False):
@@ -863,7 +1019,9 @@ def Multi_loop():
                         f.write(msg.text + T_linebreak )
                 if Trans_Model == 'GTrans' : 
                     Txt_File = Google_Trans_Txt(Txt_File,Rate)
-                File_Msg.reply_document(Txt_File)
+                    File_Msg.reply_document(Txt_File)
+                elif Trans_Model == 'Gemini' : 
+                  Txt_File = Gemini_Trans_Txt(File_Msg,Txt_File,Rate)
                 Send_Text_Res(File_Msg,open(Txt_File,'r').read())
                 del Merge_Quee[Key]
             else : 
@@ -885,10 +1043,17 @@ def Multi_loop():
                 Trans_Model = msg_list[3]
                 if Trans_Model == 'GTrans' : 
                     Txt_File = Google_Trans_Txt(Txt_File,Rate)
+                elif Trans_Model == 'Gemini' : 
+                  Txt_File = Gemini_Trans_Txt(File_Msg,Txt_File,Rate)
+
               if File.lower().endswith(Image_forms):
                 Send_Text_Res(File_Msg,open(Txt_File,'r').read())
               else :
-                File_Msg.reply_document(Txt_File)
+                if process == 'Ocr' :
+                  File_Msg.reply_document(Txt_File)
+                elif process == 'Trans' :
+                  if Trans_Model == 'GTrans':
+                    File_Msg.reply_document(Txt_File)
          
   
          elif process in ('Compress','Marg','Unlock','Renm','Convert') :
@@ -1250,9 +1415,12 @@ def callback_query(CLIENT,CallbackQuery):
         Callback_Add(CallbackQuery)
       
       elif len(Callback_List) == 3 :
+        Lang_Mods = LANGS_Modules 
+        if str(User_Id) in Admins :
+          Lang_Mods += Gemini_Model
         CHOOSE_UR_Mod = "اختر النموذج "
         LANGS_BUTTONS = []
-        for Mod in LANGS_Modules : 
+        for Mod in Lang_Mods : 
           Data = f"{CallbackQuery.data}_{Mod[1]}"
           LANGS_BUTTONS.append([InlineKeyboardButton(Mod[0],callback_data=Data)])
         CallbackQuery.edit_message_text(text = CHOOSE_UR_Mod,reply_markup = InlineKeyboardMarkup(LANGS_BUTTONS))

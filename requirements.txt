@@ -1,6 +1,8 @@
 
 Pillow
 img2pdf
+google-genai
+requests
 
 # Document & PDF Handling
 

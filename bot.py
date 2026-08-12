@@ -100,7 +100,7 @@ Cbx_Option =  Ex_Opt + Other_Options + Translate_Opts
 Other_Opts = [['Zip','Zip']]
 Photo_Options = [['دمج','IMerge'],['Ocr','Ocr']]  + Other_Opts + Translate_Opts
 Photo_Multi_Options = ['IMerge','PMake']
-Gemini_Model = [['Gemini Ai','Gemini']]
+Gemini_Model_Op = [['Gemini Ai','Gemini']]
 LANGS_Modules = [['Google Translate','GTrans']]
 Image_forms = (".jpg",".jpeg",".png",'.tif','webp')
 g_langs = [ 'العربية | ar','الإنجليزية | en','الفرنسية | fr','الألمانية | de','العبرية iw  |  iw','العبرية he | he','اليونانية | el','الأمهرية | am','الباسك | eu','البنغالية | bn','البرتغالية  | pt','البلغارية | bg','الكتالانية | ca','الشيروكية | chr','الكرواتية | hr','التشيكية | cs','الدنماركية | da','الهولندية | nl','الإستونية | et','الفلبينية | fil','الفنلندية | fi','الغوجاراتية | gu','الهندية |  hi','المجرية | hu','الأيسلندية | is ','الإندونيسية | id','الإيطالية | it','اليابانية | ja','الكانادا  | kn','الكورية | ko','اللاتفية | lv','الليتوانية | lt','الماليزية |  ms','المالايالامية | ml','الماراثية |  mr','النرويجية | no','البولندية | pl','الرومانية | ro','الروسية | ru','الصربية | sr','الصينية  | zh-cn','الصينية TW | zh-tw','السلوفاكية | sk','السلوفينية | sl','الإسبانية | es','السواحيلية | sw','السويدية | sv','التاميلية | ta','التيلوغوية | te','التايلاندية | th','التركية|  tr','الأوردية | ur','الأوكرانية | uk','الفيتنامية | vi' ,'الويلزية | cy','الأفريكانية | af', 'الأرمينية | hy','الألبانية | sq','الأذريبيجانية | az','البيلاروسية | be','البوسنية | bs','السبيونوية | ceb','الشيشوانية | ny','الكورسيكية | co', 'الهولندية | nl','الاسبرانتو | eo','الاستوانية | et','الفلبينية | tl','الزولو | zu ','يوروبا | yo','اليديشية | yi','xhosa | xh','الأوزبكية | uz ','أويغور | ug','طاجيكية | tg','السودانية | su','الصومالية | so','السنهالية | si','السندية | sd','شونا | sn','سيسوتو | st','الغيلية | gd','ساموا | sm','رومانية | ro','بنجابية | pa' ,'فارسية | fa','باشتو | ps','أوديا | or','نرويجية | no' ,'نيبالية | ne','ميانمارية | my','منغولية | mn','ماورية | mi','مالطية | mt','قيرغيزستانية | ky','كردية | ku','الخميرية | km','الكازخستانية | kk','الجاوية | jw','الأيرلندية | ga','الإندونيسية | id', 'الإيغبو | ig', 'المجرية | hu', 'همونغ | hmn','هاواي | haw','هاوسا | ha','الكريولية | ht' ,'الجورجية | ka','الجاليكية | gl','الفريزية | fy','لاوية | lo', 'لاتينية | la', 'ليتوانية | lt', 'لوكسمبورغية | lb','المقدونية | mk', 'الملغاشية | mg']
@@ -862,7 +862,10 @@ def Universal_Concat(message,Merge_Quee,Method):
       {C_Cmd}
       """
       Replied_Msg = Get_Msg(bot,User_Id,Merge_Quee[Method][0][0])
-      Replied_Msg.edit_text(M_Text)
+      try : 
+        Replied_Msg.edit_text(M_Text)
+      except : 
+        pass
 
 ###### Main Loop ####
 
@@ -1277,7 +1280,6 @@ def _telegram_file(client, message):
   PMerge_Key = f'PMerge_{User_Id}'
   TMerge_Key = f'TMerge_{User_Id}'
   AUpload_Key = f'ToArch_{User_Id}'
-  Trans_Key = f'Trans_{User_Id}'
 
   if Zip_Key in list(Merge_Quee.keys()):
     Universal_Concat(message,Merge_Quee,Zip_Key)
@@ -1345,7 +1347,6 @@ def _telegram_file(client, message):
  
 #####################################
 
-callback_dict = {}
 
 @bot.on_callback_query()
 def callback_query(CLIENT,CallbackQuery):
@@ -1417,7 +1418,7 @@ def callback_query(CLIENT,CallbackQuery):
       elif len(Callback_List) == 3 :
         Lang_Mods = LANGS_Modules 
         if str(User_Id) in Admins :
-          Lang_Mods += Gemini_Model
+          Lang_Mods += Gemini_Model_Op
         CHOOSE_UR_Mod = "اختر النموذج "
         LANGS_BUTTONS = []
         for Mod in Lang_Mods : 

@@ -1509,12 +1509,16 @@ def callback_query(CLIENT,CallbackQuery):
      Renm_L.append(User_Id)
      Text = Renm_msg
    elif Method == 'Trim' :
+
      if file_msg.document :
        if file_msg.document.file_name.lower().endswith(('pdf')):
          Text = Pdf_Trim_Msg
        elif file_msg.document.file_name.lower().endswith('txt'):
         Text = Txt_Trim_Msg
        elif file_msg.document.file_name.lower().endswith(Audio_Forms+Video_Forms):
+         Text = Media_Trim_Msg
+
+     elif file_msg.video or file_msg.audio or file_msg.voice or file_msg.video_note :
          Text = Media_Trim_Msg
    
    file_msg.reply_text(Text,reply_markup=ForceReply(True),reply_to_message_id=file_msg.id)

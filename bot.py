@@ -896,10 +896,10 @@ def Media_Trim(file_path,Rate):
   Ext = '.' + file_path.split('.')[-1]
   Res_File = file_path.replace(Ext,f"Trimmed{Ext}")
   if file_path.lower().endswith(Audio_Forms): 
-    Trim_Cmd = f'ffmpeg -i "{file_path}" -ss {strt_point} -to {end_point} "{Res_File}" -y'
+    Trim_Cmd = f'{ffmpeg} -i "{file_path}" -ss {strt_point} -to {end_point} "{Res_File}" -y'
     os.system(Trim_Cmd)
   else :
-    Trim_Cmd = f'ffmpeg -i "{file_path}" -ss {strt_point} -strict -2 -to {end_point} -c:a aac -codec:v h264 -b:v 1000k "{Res_File}" -y '
+    Trim_Cmd = f'{ffmpeg} -i "{file_path}" -ss {strt_point} -strict -2 -to {end_point} -c:a aac -codec:v h264 -b:v 1000k "{Res_File}" -y '
     os.system(Trim_Cmd)
     Res_File = Encode_Vid(Res_File)
     

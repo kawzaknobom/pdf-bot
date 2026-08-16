@@ -1389,7 +1389,7 @@ def _telegram_file(client, message):
     if message.video or message.video_note : 
         if not any(item in Options for item in Video_Options) :
           Options += Video_Options
-    elif message.video or message.video_note : 
+    elif message.audio or message.voice : 
       if not any(item in Options for item in Audio_Options) :
         Options += Audio_Options
 

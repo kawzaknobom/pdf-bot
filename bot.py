@@ -898,7 +898,7 @@ def Media_Trim(file_path,Rate):
   strt_point = point_list[0]
   end_point = point_list[1]
   Ext = '.' + file_path.split('.')[-1]
-  Res_File = file_path.replace(Ext,f"Trimmed{Ext}")
+  Res_File = file_path.replace(Ext,f"_Trimmed{Ext}")
   if file_path.lower().endswith(Audio_Forms): 
     Trim_Cmd = f'{ffmpeg} -i "{file_path}" -ss {strt_point} -to {end_point} "{Res_File}" -y'
     os.system(Trim_Cmd)
@@ -907,7 +907,7 @@ def Media_Trim(file_path,Rate):
     os.system(Trim_Cmd)
     Res_File = Encode_Vid(Res_File)
     
-  cap = f"`{strt_point}` to `{strt_point}`"
+  cap = f"`{strt_point}` to `{end_point}`"
   return Res_File,cap
 
 ###### Main Loop ####

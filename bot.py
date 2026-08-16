@@ -110,30 +110,12 @@ g_langs = [ 'العربية | ar','الإنجليزية | en','الفرنسية 
 Ex_Pdf_Limit = 500
 Trim_Op = [['قص','Trim']]
 Epub_Opts = Cbx_Option 
-Media_Options = [['تضخيم','Amplify'],['تسريع','Speeden'],['تبطيئ','Slowen'],['تحويل','Convert'],['تغيير الصوت','Change']] + Compress_Op + Trim_Op +Other_Options
-Video_Options = [['تحويل','Convert']] + Compress_Op
+Media_Options = [['تضخيم','Amplify'],['تسريع','Speeden'],['تبطيئ','Slowen'],['تحويل','Convert'],['تغيير الصوت','Change']] + Compress_Op + Trim_Op + Other_Options
+Video_Options = [['تحويل','Convert']] + Compress_Op + Trim_Op
 # Video_Options = Media_Options + [['كتم الصوت','Mute'],['إبدال الصوت','SubAud'],['دمج','VMerge']]
-Audio_Options = Compress_Op
+Audio_Options = Trim_Op
 # Audio_Options = Media_Options  +  [['دمج','AMerge'],['إزالة الصمت','Silence'],['تقطيع','Frag']]
 
-
-Main_Contract = """
-السلام عليكم ورحمة الله وبركاته 
-`
-♦️الوصف 
-
-▪️ بوت متعدد الاستخدامات 
-
-♦️ بنود الاستخدام 
-
-▪️فيما لا يُخالف الشريعة الإسلامية ، لا أفلام أو أغاني أو كرتون 
-▪️لعوام المسلمين عامة و لأهل السنة خاصة ، أهل الحديث والأثر ، [ لا للزنادقة خصوصاً الصوفية ] 
-`
-🛑 قال رسول الله ﷺ  « المسلمون على شروطهم » 
-
-هل توافق على بنود الاستخدام ؟ 
-"""
-Usage_Button = [["نعم ","Yes"],["لا","No"] ]
 
 Renm_msg = "الآن أدخل الاسم الجديد "
 Compress_Op = [['ضغط','Compress']]
@@ -157,6 +139,7 @@ Txt_Trim_Msg = """
 🛑 الآن أرسل جملة البداية والنهاية بهذه الصورة 
  start ~ end 
 """
+Media_Trim_Msg = "الآن أرسل نقطة البداية والنهاية بهذه الصورة \n\n hh:mm:ss-hh:mm:ss"
 
 
 Audio_Forms = (".mp3",".ogg",".m4a",".aac",".flac",".wav",".wma",".opus",".3gpp")
@@ -906,6 +889,21 @@ def Universal_Concat(message,Merge_Quee,Method):
       except : 
         pass
 
+def Media_Trim(file_path,Rate):
+  point_list = Rate.split('-') 
+  strt_point = point_list[0]
+  end_point = point_list[1]
+  Ext = '.' + file_path.split('.')[-1]
+  Res_File = file_path.replace(Ext,f"Trimmed{Ext}")
+  if file_path.lower().endswith(Audio_Forms): 
+    Trim_Cmd = f'ffmpeg -i "{file_path}" -ss {strt_point} -to {end_point} "{Res_File}" -y'
+    os.system(Trim_Cmd)
+  else :
+    Trim_Cmd = f'ffmpeg -i "{file_path}" -ss {strt_point} -strict -2 -to {end_point} -c:a aac -codec:v h264 -b:v 1000k "{Res_File}" -y '
+    os.system(Trim_Cmd)
+    Res_File = Encode_Vid(Res_File)
+    
+  return Res_File
 ###### Main Loop ####
 
 def reload_loop(process):
@@ -1018,9 +1016,15 @@ def Multi_loop():
          if not File_Msg.text :
           File = File_Dl(File_Msg,dl_path)
          if process == 'Trim' :
-           if '|' in Rate : 
-              Rate = Rate.replace('|',' ')
-           if File.lower().endswith(('pdf')) :
+           
+           if File.lower().endswith((Audio_Forms+Video_Forms)) :
+             if ',' in Rate :
+               Cases = Rate.split(splitor)
+               for Case in Cases : 
+                  Res_File = Media_Trim(File,Case)
+                  Upld_File(Res_File,File_Msg)
+
+           elif File.lower().endswith(('pdf')) :
 
             if any(x in Rate for x in [',','،']):
              if ',' in Rate : 
@@ -1034,6 +1038,8 @@ def Multi_loop():
              Pdf_Cases(Rate,File,File_Msg)
 
            elif File.lower().endswith('txt'):
+             if '|' in Rate : 
+                Rate = Rate.replace('|',' ')
              Phrase_List = Rate.split('~')
              Start_ph = Phrase_List[0]
              End_ph = Phrase_List[-1]
@@ -1505,6 +1511,8 @@ def callback_query(CLIENT,CallbackQuery):
          Text = Pdf_Trim_Msg
        elif file_msg.document.file_name.lower().endswith('txt'):
         Text = Txt_Trim_Msg
+       elif file_msg.document.file_name.lower().endswith(Audio_Forms+Video_Forms):
+         Text = Media_Trim_Msg
    
    file_msg.reply_text(Text,reply_markup=ForceReply(True),reply_to_message_id=file_msg.id)
   
@@ -1533,13 +1541,14 @@ def refunc(client,message):
     Quee = public_q
     replied = file_msg.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
     Pdf_Trim_Pattern = r"^\d+(?:[,-/]\d+(?:-\d+)?)*$"
+    Media_Trim_Pattern = r"\d{,2}:\d{2}"
     
     if User_Id in Renm_L :
       Process = 'Renm'
       Text = Msg_Text.replace(' ','|')
       Renm_L.remove(User_Id)
 
-    elif re.search(Pdf_Trim_Pattern,Msg_Text) or '~' in Msg_Text  :
+    elif re.search(Pdf_Trim_Pattern,Msg_Text) or re.search(Media_Trim_Pattern,Msg_Text) or  '~' in Msg_Text  :
         Process = 'Trim'
         Text = Msg_Text.strip()
         if ' ' in Text:

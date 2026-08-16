@@ -1023,6 +1023,9 @@ def Multi_loop():
                for Case in Cases : 
                   Res_File = Media_Trim(File,Case)
                   Upld_File(Res_File,File_Msg)
+             else :
+               Res_File = Media_Trim(File,Rate)
+               Upld_File(Res_File,File_Msg)
 
            elif File.lower().endswith(('pdf')) :
 

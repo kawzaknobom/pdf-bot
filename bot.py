@@ -1025,7 +1025,7 @@ def Multi_loop():
            
            if File.lower().endswith((Audio_Forms+Video_Forms)) :
              if ',' in Rate :
-               Cases = Rate.split(splitor)
+               Cases = Rate.split(',')
                for Case in Cases : 
                   Res_File,cap = Media_Trim(File,Case)
                   Upld_File(Res_File,File_Msg,cap)

@@ -106,15 +106,15 @@ Photo_Options = [['دمج','IMerge'],['Ocr','Ocr']]  + Other_Opts + Translate_Op
 Photo_Multi_Options = ['IMerge','PMake']
 Gemini_Model_Op = [['Gemini Ai','Gemini']]
 LANGS_Modules = [['Google Translate','GTrans']]
-Image_forms = (".jpg",".jpeg",".png",'.tif','webp')
 g_langs = [ 'العربية | ar','الإنجليزية | en','الفرنسية | fr','الألمانية | de','العبرية iw  |  iw','العبرية he | he','اليونانية | el','الأمهرية | am','الباسك | eu','البنغالية | bn','البرتغالية  | pt','البلغارية | bg','الكتالانية | ca','الشيروكية | chr','الكرواتية | hr','التشيكية | cs','الدنماركية | da','الهولندية | nl','الإستونية | et','الفلبينية | fil','الفنلندية | fi','الغوجاراتية | gu','الهندية |  hi','المجرية | hu','الأيسلندية | is ','الإندونيسية | id','الإيطالية | it','اليابانية | ja','الكانادا  | kn','الكورية | ko','اللاتفية | lv','الليتوانية | lt','الماليزية |  ms','المالايالامية | ml','الماراثية |  mr','النرويجية | no','البولندية | pl','الرومانية | ro','الروسية | ru','الصربية | sr','الصينية  | zh-cn','الصينية TW | zh-tw','السلوفاكية | sk','السلوفينية | sl','الإسبانية | es','السواحيلية | sw','السويدية | sv','التاميلية | ta','التيلوغوية | te','التايلاندية | th','التركية|  tr','الأوردية | ur','الأوكرانية | uk','الفيتنامية | vi' ,'الويلزية | cy','الأفريكانية | af', 'الأرمينية | hy','الألبانية | sq','الأذريبيجانية | az','البيلاروسية | be','البوسنية | bs','السبيونوية | ceb','الشيشوانية | ny','الكورسيكية | co', 'الهولندية | nl','الاسبرانتو | eo','الاستوانية | et','الفلبينية | tl','الزولو | zu ','يوروبا | yo','اليديشية | yi','xhosa | xh','الأوزبكية | uz ','أويغور | ug','طاجيكية | tg','السودانية | su','الصومالية | so','السنهالية | si','السندية | sd','شونا | sn','سيسوتو | st','الغيلية | gd','ساموا | sm','رومانية | ro','بنجابية | pa' ,'فارسية | fa','باشتو | ps','أوديا | or','نرويجية | no' ,'نيبالية | ne','ميانمارية | my','منغولية | mn','ماورية | mi','مالطية | mt','قيرغيزستانية | ky','كردية | ku','الخميرية | km','الكازخستانية | kk','الجاوية | jw','الأيرلندية | ga','الإندونيسية | id', 'الإيغبو | ig', 'المجرية | hu', 'همونغ | hmn','هاواي | haw','هاوسا | ha','الكريولية | ht' ,'الجورجية | ka','الجاليكية | gl','الفريزية | fy','لاوية | lo', 'لاتينية | la', 'ليتوانية | lt', 'لوكسمبورغية | lb','المقدونية | mk', 'الملغاشية | mg']
 Ex_Pdf_Limit = 500
 Trim_Op = [['قص','Trim']]
 Epub_Opts = Cbx_Option 
 Media_Options = [['تضخيم','Amplify'],['تسريع','Speeden'],['تبطيئ','Slowen'],['تحويل','Convert'],['تغيير الصوت','Change']] + Compress_Op + Trim_Op +Other_Options
-Video_Options = [['تحويل','Convert']]
+Video_Options = [['تحويل','Convert']] + Compress_Op
 # Video_Options = Media_Options + [['كتم الصوت','Mute'],['إبدال الصوت','SubAud'],['دمج','VMerge']]
-Audio_Options = Media_Options  +  [['دمج','AMerge'],['إزالة الصمت','Silence'],['تقطيع','Frag']]
+Audio_Options = Compress_Op
+# Audio_Options = Media_Options  +  [['دمج','AMerge'],['إزالة الصمت','Silence'],['تقطيع','Frag']]
 
 
 Main_Contract = """
@@ -159,8 +159,20 @@ Txt_Trim_Msg = """
 """
 
 
+Audio_Forms = (".mp3",".ogg",".m4a",".aac",".flac",".wav",".wma",".opus",".3gpp")
+
+Video_Forms = (".mp4",".mkv",".mov",".avi",".wmv",".avchd",".webm",".flv")
+
+Image_forms = (".jpg",".png",'.tif','webp')
+
 ### Pdf Funcs ###
 
+
+def Encode_Vid(File):
+    Mp4_File = ('.' if File[1]=='/' else '') + File.split('.')[(1 if File[0] == '.' else 0)] + '_encoded.mp4'
+    Vid_Encode = f'{ffmpeg} -i "{File}" -c:a aac -codec:v h264 -b:v 1000k "{Mp4_File}" -y'
+    os.system(Vid_Encode)
+    return Mp4_File
 
 def extract_epub(epub_path):
     Res_File = epub_path.replace('.epub','.txt')
@@ -1113,6 +1125,8 @@ def Multi_loop():
               elif process == 'Compress' :
                 if File.lower().endswith('pdf'):
                   Res_File = Pdf_Compress(bot,dl_path,File)
+                elif File.lower().endswith(Video_Forms):
+                  Res_File = Encode_Vid(File)
               elif process == 'Convert' :
                 Res_File = Mp3_Conv(File)
               Upld_File(Res_File,File_Msg)
@@ -1300,7 +1314,10 @@ def command1(bot,message):
 
 
      
-#####
+########################################################################
+########################################################################
+
+
 
 @bot.on_message(filters.private & filters.incoming & (filters.photo | filters.audio | filters.voice | filters.video | filters.document ))
 def _telegram_file(client, message):
@@ -1364,12 +1381,13 @@ def _telegram_file(client, message):
   elif message.video or message.audio or message.voice or message.video_note :
     Options = Other_Options
     if message.video or message.video_note : 
-        Options += Video_Options
+        if not any(item in Options for item in Video_Options) :
+          Options += Video_Options
 
   if str(User_Id) in admins :
-   for elm in Premium_Opts : 
-    if elm not in Options : 
-      Options += [elm]
+   if not any(item in Options for item in Premium_Opts) :
+     Options += Premium_Opts
+
   CHOOSE_UR_BUTTONS = []
   CHOOSE_UR_Option = "اختر ما تريد "
   for Index,option in enumerate(Options) : 

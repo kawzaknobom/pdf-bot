@@ -17,6 +17,10 @@ from textwrap import wrap
 from pdfCropMargins import crop
 from math import ceil
 
+import ebooklib
+from ebooklib import epub
+from bs4 import BeautifulSoup
+
 import internetarchive as ia
 from googletrans import Translator
 
@@ -106,8 +110,10 @@ Image_forms = (".jpg",".jpeg",".png",'.tif','webp')
 g_langs = [ 'العربية | ar','الإنجليزية | en','الفرنسية | fr','الألمانية | de','العبرية iw  |  iw','العبرية he | he','اليونانية | el','الأمهرية | am','الباسك | eu','البنغالية | bn','البرتغالية  | pt','البلغارية | bg','الكتالانية | ca','الشيروكية | chr','الكرواتية | hr','التشيكية | cs','الدنماركية | da','الهولندية | nl','الإستونية | et','الفلبينية | fil','الفنلندية | fi','الغوجاراتية | gu','الهندية |  hi','المجرية | hu','الأيسلندية | is ','الإندونيسية | id','الإيطالية | it','اليابانية | ja','الكانادا  | kn','الكورية | ko','اللاتفية | lv','الليتوانية | lt','الماليزية |  ms','المالايالامية | ml','الماراثية |  mr','النرويجية | no','البولندية | pl','الرومانية | ro','الروسية | ru','الصربية | sr','الصينية  | zh-cn','الصينية TW | zh-tw','السلوفاكية | sk','السلوفينية | sl','الإسبانية | es','السواحيلية | sw','السويدية | sv','التاميلية | ta','التيلوغوية | te','التايلاندية | th','التركية|  tr','الأوردية | ur','الأوكرانية | uk','الفيتنامية | vi' ,'الويلزية | cy','الأفريكانية | af', 'الأرمينية | hy','الألبانية | sq','الأذريبيجانية | az','البيلاروسية | be','البوسنية | bs','السبيونوية | ceb','الشيشوانية | ny','الكورسيكية | co', 'الهولندية | nl','الاسبرانتو | eo','الاستوانية | et','الفلبينية | tl','الزولو | zu ','يوروبا | yo','اليديشية | yi','xhosa | xh','الأوزبكية | uz ','أويغور | ug','طاجيكية | tg','السودانية | su','الصومالية | so','السنهالية | si','السندية | sd','شونا | sn','سيسوتو | st','الغيلية | gd','ساموا | sm','رومانية | ro','بنجابية | pa' ,'فارسية | fa','باشتو | ps','أوديا | or','نرويجية | no' ,'نيبالية | ne','ميانمارية | my','منغولية | mn','ماورية | mi','مالطية | mt','قيرغيزستانية | ky','كردية | ku','الخميرية | km','الكازخستانية | kk','الجاوية | jw','الأيرلندية | ga','الإندونيسية | id', 'الإيغبو | ig', 'المجرية | hu', 'همونغ | hmn','هاواي | haw','هاوسا | ha','الكريولية | ht' ,'الجورجية | ka','الجاليكية | gl','الفريزية | fy','لاوية | lo', 'لاتينية | la', 'ليتوانية | lt', 'لوكسمبورغية | lb','المقدونية | mk', 'الملغاشية | mg']
 Ex_Pdf_Limit = 500
 Trim_Op = [['قص','Trim']]
+Epub_Opts = Cbx_Option 
 Media_Options = [['تضخيم','Amplify'],['تسريع','Speeden'],['تبطيئ','Slowen'],['تحويل','Convert'],['تغيير الصوت','Change']] + Compress_Op + Trim_Op +Other_Options
-Video_Options = Media_Options + [['كتم الصوت','Mute'],['إبدال الصوت','SubAud'],['دمج','VMerge']]
+Video_Options = [['تحويل','Convert']]
+# Video_Options = Media_Options + [['كتم الصوت','Mute'],['إبدال الصوت','SubAud'],['دمج','VMerge']]
 Audio_Options = Media_Options  +  [['دمج','AMerge'],['إزالة الصمت','Silence'],['تقطيع','Frag']]
 
 
@@ -154,6 +160,26 @@ Txt_Trim_Msg = """
 
 
 ### Pdf Funcs ###
+
+
+def extract_epub(epub_path):
+    Res_File = epub_path.replace('.epub','.txt')
+    book = epub.read_epub(epub_path)
+    content_blocks = []
+
+    for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
+        soup = BeautifulSoup(item.get_content(), 'html.parser')
+        
+        for script_or_style in soup(["script", "style"]):
+            script_or_style.decompose()
+
+        text = soup.get_text(separator='\n', strip=True)
+        
+        if text:
+            content_blocks.append(text)
+
+    open(Res_File,'w').write("\n\n".join(content_blocks))
+    return Res_File
 
 
 def upld2arch(upldarchlist):
@@ -1008,6 +1034,10 @@ def Multi_loop():
                   Extract_Dir = Pdf_Extract(File)
                   Msgs_List = Upld_Dir_Func(Extract_Dir,File_Msg)
 
+            elif File.lower().endswith(('.epub')): 
+              Res_File = extract_epub(File)
+              Upld_File(Res_File,File_Msg)
+
 
          elif process in ['Ocr','Trans']:
             if File_Msg.text : 
@@ -1039,10 +1069,11 @@ def Multi_loop():
                   
                 if File.lower().endswith('pdf'):
                   Txt_File = pdf_ocr_func(File)
+                elif File.lower().endswith('epub'):
+                  Txt_File = extract_epub(File)
                 elif File.lower().endswith(Image_forms):
                   Txt_File,Docx_File = Ocr_Func(File)
             
-
               if process == 'Trans' :
                 Trans_Model = msg_list[3]
                 if Trans_Model == 'GTrans' : 
@@ -1322,7 +1353,11 @@ def _telegram_file(client, message):
    elif message.document.file_name.lower().endswith('txt') : 
      
      Options = Pdf_Txt_Option
-   
+
+   elif message.document.file_name.lower().endswith('epub') : 
+
+    Options = Epub_Opts
+
    else :
      Options = Other_Options
 

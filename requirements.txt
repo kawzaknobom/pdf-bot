@@ -20,6 +20,7 @@ googletrans
 tahweel
 internetarchive
 static_ffmpeg
+EbookLib
 
 tgbot-ping
 Flask

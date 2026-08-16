@@ -498,6 +498,10 @@ def Upld_File(file,Msg,cap=' ',isogg=False):
             RMsg = Msg.reply_photo(file)
           except : 
             RMsg = Msg.reply_document(file)
+      elif file.lower().endswith(Video_Forms):
+        RMsg = Msg.reply_video(file,caption=cap)
+      elif file.lower().endswith(Audio_Forms):
+        RMsg = Msg.reply_audio(file,caption=cap)
       else :
           RMsg = Msg.reply_document(file,caption=cap)
       return RMsg.id
@@ -903,7 +907,9 @@ def Media_Trim(file_path,Rate):
     os.system(Trim_Cmd)
     Res_File = Encode_Vid(Res_File)
     
-  return Res_File
+  cap = f"`{strt_point}` to `{strt_point}`"
+  return Res_File,cap
+
 ###### Main Loop ####
 
 def reload_loop(process):
@@ -1021,11 +1027,11 @@ def Multi_loop():
              if ',' in Rate :
                Cases = Rate.split(splitor)
                for Case in Cases : 
-                  Res_File = Media_Trim(File,Case)
-                  Upld_File(Res_File,File_Msg)
+                  Res_File,cap = Media_Trim(File,Case)
+                  Upld_File(Res_File,File_Msg,cap)
              else :
-               Res_File = Media_Trim(File,Rate)
-               Upld_File(Res_File,File_Msg)
+               Res_File,cap = Media_Trim(File,Rate)
+               Upld_File(Res_File,File_Msg,cap)
 
            elif File.lower().endswith(('pdf')) :
 

@@ -1329,30 +1329,18 @@ def command1(bot,message):
 ########################################################################
 ########################################################################
 
-def Get_Type(message):
-  if message.audio : 
-      Type = 'audio'
-  elif message.voice : 
-    Type = 'voice'
-  elif message.video : 
-    Type = 'video'
-  elif message.video_note  : 
-    Type = 'video_note'
-  elif message.document :
-    Type = 'document'
-
-  return Type
-
 @bot.on_message(filters.private & filters.incoming & (filters.photo | filters.audio | filters.voice | filters.video | filters.document ))
 def _telegram_file(client, message):
-  
-  media_type = Get_Type(message)
-  media_obj = getattr(message, media_type, None)
-  if media_obj in ['voice','video_note'] : 
-    file_name = getattr(media_obj, 'file_unique_id', None) if media_obj else None
-    file_name += ('.ogg' if media_obj == 'voice' else '.mp4')
-  else :
-    file_name = getattr(media_obj, 'file_name', None) if media_obj else None
+  file_name = next(
+    (
+        obj.file_name
+        for attr in dir(message)
+        if not attr.startswith("_")
+        and (obj := getattr(message, attr, None))
+        and getattr(obj, "file_name", None) is not None
+    ),
+    None,
+)
 
   User_Id = message.from_user.id
   Zip_Key = f'Zip_{User_Id}'

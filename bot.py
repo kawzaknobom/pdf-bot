@@ -1331,16 +1331,9 @@ def command1(bot,message):
 
 @bot.on_message(filters.private & filters.incoming & (filters.photo | filters.audio | filters.voice | filters.video | filters.document ))
 def _telegram_file(client, message):
-  file_name = next(
-    (
-        obj.file_name
-        for attr in dir(message)
-        if not attr.startswith("_")
-        and (obj := getattr(message, attr, None))
-        and getattr(obj, "file_name", None) is not None
-    ),
-    None,
-)
+  file_name = getattr(getattr(message, message.media.value, None), "file_name", None) if message.media else None
+  if message.voice or message.video_note :
+    file_name = message.file_unique_id + ('.ogg' if message.voice else '.mp4')
 
   User_Id = message.from_user.id
   Zip_Key = f'Zip_{User_Id}'
@@ -1359,7 +1352,7 @@ def _telegram_file(client, message):
   else :
     
     if IMerge_Key in list(Merge_Quee.keys()):
-     if file_name.lower().endswith(Image_forms):
+     if file_name.lower().endswith(Image_forms) or message.photo:
       Universal_Concat(message,Merge_Quee,IMerge_Key)
       return
     elif PMerge_Key in list(Merge_Quee.keys()):
@@ -1367,7 +1360,7 @@ def _telegram_file(client, message):
       Universal_Concat(message,Merge_Quee,PMerge_Key)
       return
     elif Pmake_Key in list(Merge_Quee.keys()):
-     if file_name.lower().endswith(Image_forms):
+     if file_name.lower().endswith(Image_forms) or message.photo :
       Universal_Concat(message,Merge_Quee,Pmake_Key)
       return
     elif TMerge_Key in list(Merge_Quee.keys()):
@@ -1375,13 +1368,13 @@ def _telegram_file(client, message):
       Universal_Concat(message,Merge_Quee,TMerge_Key)
       return
 
-  if file_name.lower().endswith(Image_forms):
+  if file_name.lower().endswith(Image_forms) or message.photo :
     Options =  Photo_Options + Pdf_Image_Option
 
-  elif file_name.lower().endswith(Video_Forms) : 
+  elif file_name.lower().endswith(Video_Forms) or message.video  : 
     Options = Video_Options
 
-  elif file_name.lower().endswith(Audio_Forms) : 
+  elif file_name.lower().endswith(Audio_Forms) or message.audio or message.voice : 
       Options = Audio_Options
 
   elif file_name.lower().endswith(('pdf')) : 

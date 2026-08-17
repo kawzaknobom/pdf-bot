@@ -1332,6 +1332,8 @@ def command1(bot,message):
 @bot.on_message(filters.private & filters.incoming & (filters.photo | filters.audio | filters.voice | filters.video | filters.document ))
 def _telegram_file(client, message):
   file_name = getattr(getattr(message, message.media.value, None), "file_name", None) if message.media else None
+  if file_name == None :
+    file_name = 'None'
   if message.voice :
     file_name = message.voice.file_unique_id + '.ogg'
   elif message.video_note : 

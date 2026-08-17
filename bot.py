@@ -101,7 +101,6 @@ Tr_linebreak = '\n\n 🟡ـــــــــــــــــــــــــــ�
 Ex_Opt = [['استخراج','Ex']]
 Translate_Opts = [['ترجمة','Trans']]
 Cbx_Option =  Ex_Opt + Other_Options + Translate_Opts
-Other_Opts = [['Zip','Zip']]
 Photo_Options = [['دمج','IMerge'],['Ocr','Ocr']]  + Other_Opts + Translate_Opts
 Photo_Multi_Options = ['IMerge','PMake']
 Gemini_Model_Op = [['Gemini Ai','Gemini']]
@@ -111,9 +110,9 @@ Ex_Pdf_Limit = 500
 Trim_Op = [['قص','Trim']]
 Epub_Opts = Cbx_Option 
 Media_Options = [['تضخيم','Amplify'],['تسريع','Speeden'],['تبطيئ','Slowen'],['تحويل','Convert'],['تغيير الصوت','Change']] + Compress_Op + Trim_Op + Other_Options
-Video_Options = [['تحويل','Convert']] + Compress_Op + Trim_Op
+Video_Options = [['تحويل','Convert']] + Compress_Op + Trim_Op + Other_Options
 # Video_Options = Media_Options + [['كتم الصوت','Mute'],['إبدال الصوت','SubAud'],['دمج','VMerge']]
-Audio_Options = Trim_Op
+Audio_Options = Trim_Op + Other_Options
 # Audio_Options = Media_Options  +  [['دمج','AMerge'],['إزالة الصمت','Silence'],['تقطيع','Frag']]
 
 
@@ -1392,10 +1391,10 @@ def _telegram_file(client, message):
     Options =  Photo_Options + Pdf_Image_Option
 
   elif file_name.lower().endswith(Video_Forms) : 
-    Options = Other_Options + Video_Options
+    Options = Video_Options
 
   elif file_name.lower().endswith(Audio_Forms) : 
-      Options = Other_Options + Audio_Forms
+      Options = Audio_Options
 
   elif file_name.lower().endswith(('pdf')) : 
     Options = Pdf_Options

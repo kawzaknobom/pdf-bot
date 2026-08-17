@@ -1354,7 +1354,7 @@ def _telegram_file(client, message):
   else :
     
     if IMerge_Key in list(Merge_Quee.keys()):
-     if file_name.lower().endswith(Image_forms) or message.photo:
+     if message.photo or file_name.lower().endswith(Image_forms) :
       Universal_Concat(message,Merge_Quee,IMerge_Key)
       return
     elif PMerge_Key in list(Merge_Quee.keys()):
@@ -1362,7 +1362,7 @@ def _telegram_file(client, message):
       Universal_Concat(message,Merge_Quee,PMerge_Key)
       return
     elif Pmake_Key in list(Merge_Quee.keys()):
-     if file_name.lower().endswith(Image_forms) or message.photo :
+     if  message.photo or file_name.lower().endswith(Image_forms) :
       Universal_Concat(message,Merge_Quee,Pmake_Key)
       return
     elif TMerge_Key in list(Merge_Quee.keys()):
@@ -1370,13 +1370,13 @@ def _telegram_file(client, message):
       Universal_Concat(message,Merge_Quee,TMerge_Key)
       return
 
-  if file_name.lower().endswith(Image_forms) or message.photo :
+  if message.photo or file_name.lower().endswith(Image_forms)  :
     Options =  Photo_Options + Pdf_Image_Option
 
-  elif file_name.lower().endswith(Video_Forms) or message.video  : 
+  elif message.video or file_name.lower().endswith(Video_Forms)  : 
     Options = Video_Options
 
-  elif file_name.lower().endswith(Audio_Forms) or message.audio or message.voice : 
+  elif message.audio or message.voice or file_name.lower().endswith(Audio_Forms) : 
       Options = Audio_Options
 
   elif file_name.lower().endswith(('pdf')) : 

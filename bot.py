@@ -118,8 +118,6 @@ Audio_Options = Trim_Op
 
 
 Renm_msg = "الآن أدخل الاسم الجديد "
-Compress_Op = [['ضغط','Compress']]
-Trim_Op = [['قص','Trim']]
 To_Pdf_Opt = [['Conv to Pdf ','2Pdf']]
 Pdf_Options = [['دمج','PMerge'],['Ocr','Ocr'],['فك قفل طباعة','Unlock'],['بلا حواشي','Marg']]  + Trim_Op + Cbx_Option + Compress_Op
 Pdf_Txt_Option = Other_Options + Trim_Op + Translate_Opts + [['دمج','TMerge']]
@@ -1332,11 +1330,31 @@ def command1(bot,message):
 ########################################################################
 ########################################################################
 
+def Get_Type(message):
+  if message.audio : 
+      Type = 'audio'
+  elif message.voice : 
+    Type = 'voice'
+  elif message.video : 
+    Type = 'video'
+  elif message.video_note  : 
+    Type = 'video_note'
+  elif message.document :
+    Type = 'document'
 
+  return Type
 
 @bot.on_message(filters.private & filters.incoming & (filters.photo | filters.audio | filters.voice | filters.video | filters.document ))
 def _telegram_file(client, message):
-    
+  
+  media_type = Get_Type(message)
+  media_obj = getattr(message, media_type, None)
+  if media_obj in ['voice','video_note'] : 
+    file_name = getattr(media_obj, 'file_unique_id', None) if media_obj else None
+    file_name += ('.ogg' if media_obj == 'voice' else '.mp4')
+  else :
+    file_name = getattr(media_obj, 'file_name', None) if media_obj else None
+
   User_Id = message.from_user.id
   Zip_Key = f'Zip_{User_Id}'
   IMerge_Key = f'IMerge_{User_Id}'
@@ -1354,53 +1372,44 @@ def _telegram_file(client, message):
   else :
     
     if IMerge_Key in list(Merge_Quee.keys()):
-     if message.photo or message.document.file_name.lower().endswith(Image_forms):
+     if file_name.lower().endswith(Image_forms):
       Universal_Concat(message,Merge_Quee,IMerge_Key)
       return
     elif PMerge_Key in list(Merge_Quee.keys()):
-     if message.document.file_name.lower().endswith('pdf'):
+     if file_name.lower().endswith('pdf'):
       Universal_Concat(message,Merge_Quee,PMerge_Key)
       return
     elif Pmake_Key in list(Merge_Quee.keys()):
-     if message.photo or message.document.file_name.lower().endswith(Image_forms):
+     if file_name.lower().endswith(Image_forms):
       Universal_Concat(message,Merge_Quee,Pmake_Key)
       return
     elif TMerge_Key in list(Merge_Quee.keys()):
-     if message.document.file_name.lower().endswith('txt') :
+     if file_name.lower().endswith('txt') :
       Universal_Concat(message,Merge_Quee,TMerge_Key)
       return
 
-  if message.photo : 
-      Options =  Photo_Options + Pdf_Image_Option
-   
-  elif message.document : 
-   
-   if message.document.file_name.lower().endswith(Image_forms) : 
-      Options = Photo_Options + Pdf_Image_Option
-   
-   elif message.document.file_name.lower().endswith(('pdf')) : 
-       if message.document.file_name.lower().endswith('pdf'):
-        Options = Pdf_Options
-   
-   elif message.document.file_name.lower().endswith('txt') : 
-     
-     Options = Pdf_Txt_Option
+  if file_name.lower().endswith(Image_forms):
+    Options =  Photo_Options + Pdf_Image_Option
 
-   elif message.document.file_name.lower().endswith('epub') : 
+  elif file_name.lower().endswith(Video_Forms) : 
+    Options = Other_Options + Video_Options
 
-    Options = Epub_Opts
+  elif file_name.lower().endswith(Audio_Forms) : 
+      Options = Other_Options + Audio_Forms
 
-   else :
-     Options = Other_Options
+  elif file_name.lower().endswith(('pdf')) : 
+    Options = Pdf_Options
 
-  elif message.video or message.audio or message.voice or message.video_note :
+  elif file_name.lower().endswith('txt') : 
+       
+       Options = Pdf_Txt_Option
+
+  elif file_name.lower().endswith('epub') : 
+  
+      Options = Epub_Opts
+
+  else : 
     Options = Other_Options
-    if message.video or message.video_note : 
-        if not any(item in Options for item in Video_Options) :
-          Options += Video_Options
-    elif message.audio or message.voice : 
-      if not any(item in Options for item in Audio_Options) :
-        Options += Audio_Options
 
   if str(User_Id) in admins :
    if not any(item in Options for item in Premium_Opts) :

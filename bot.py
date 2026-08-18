@@ -13,7 +13,7 @@ from pyrogram.enums import MessageEntityType
 
 
 from functools import reduce
-import os,re,random, threading,time,subprocess,asyncio,shutil,img2pdf,json,requests
+import os,re,random, threading,time,subprocess,shutil,img2pdf,json,requests
 
 
 from pypdf import PdfReader
@@ -662,11 +662,15 @@ def Txt_Trim(Txt_File,Start_Word,End_Word):
     open(Res_File,'w').write(Extracted_text)
     return Res_File
 
-def Pdf_Compress(bot,dl_path,File):
+def Pdf_Compress(File):
   pdf_file = File.replace('.pdf','_Compressed.pdf')
   Extract_Dir = Pdf_Extract(File)
   Img_List = Dir_List(Extract_Dir)
-  Pdf_File = Pdf_Make(Img_List)
+  img_list = []
+  for img in Img_List : 
+     Img = Fix_Image_Dim(img)
+     img_list.append(Img)
+  Pdf_File = Pdf_Make(img_list)
   os.rename(Pdf_File,pdf_file)
   return pdf_file
 
@@ -747,10 +751,8 @@ def Pdf_Extract(File):
 
 def Unlock_Pdf(File):
   Unlocked_File = File.replace('.pdf','_Unlocked.pdf')
-  Extract_Dir = Pdf_Extract(File)
-  Img_List = Dir_List(Extract_Dir)
-  Pdf_File = Pdf_Make(Img_List)
-  os.rename(Pdf_File,Unlocked_File)
+  File = Pdf_Compress(File)
+  os.rename(File,Unlocked_File)
   return Unlocked_File
   
 ########
@@ -1169,7 +1171,7 @@ def Multi_loop():
                     File_Msg.reply(f'حد الملف {Ex_Pdf_Limit} صفحة')
               elif process == 'Compress' :
                 if File.lower().endswith('pdf'):
-                  Res_File = Pdf_Compress(bot,dl_path,File)
+                  Res_File = Pdf_Compress(File)
                 elif File.lower().endswith(Video_Forms):
                   Res_File = Encode_Vid(File)
               elif process == 'Convert' :

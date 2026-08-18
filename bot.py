@@ -487,6 +487,30 @@ def Merge_Images_SBS(file1, file2):
     return outimg
 
 
+def Fix_Image_Dim(input_path, max_dimension=1280):
+    Ext = '.' + input_path.split('.')[-1]
+    output_path = input_path.replace(Ext,'_Resized.jpg')
+    with Image.open(input_path) as img:
+        width, height = img.size
+        if width > max_dimension or height > max_dimension:
+            if width > height:
+                new_width = max_dimension
+                new_height = int(height * (max_dimension / width))
+            else:
+                new_height = max_dimension
+                new_width = int(width * (max_dimension / height))
+                
+            img = img.resize((new_width, new_height), Image.LANCZOS)
+            
+        if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
+            background = Image.new('RGB', img.size, (255, 255, 255))
+            background.paste(img, mask=img.split()[-1])
+            img = background
+
+        img.save(output_path, 'JPEG', quality=85)
+        os.remove(input_path)
+        return output_path
+    
 def Upld_File(file,Msg,cap=' ',isogg=False):
   try:
     if file != None:
@@ -494,7 +518,8 @@ def Upld_File(file,Msg,cap=' ',isogg=False):
           try : 
             RMsg = Msg.reply_photo(file)
           except : 
-            RMsg = Msg.reply_document(file)
+            file = Fix_Image_Dim(file)
+            RMsg = Msg.reply_photo(file)
       elif file.lower().endswith(Video_Forms):
         RMsg = Msg.reply_video(file,caption=cap)
       elif file.lower().endswith(Audio_Forms):

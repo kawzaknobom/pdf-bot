@@ -1,3 +1,12 @@
+import asyncio
+
+# Initialize an event loop before Pyrogram imports
+try:
+    loop = asyncio.get_event_loop()
+except RuntimeError:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
 from pyrogram.types import InlineKeyboardMarkup , InlineKeyboardButton , CallbackQuery , ForceReply,Message,ReplyKeyboardMarkup, KeyboardButton,ReplyKeyboardRemove,BotCommand
 from pyrogram import Client, filters,StopTransmission,idle
 from pyrogram.errors import FloodWait
@@ -10,7 +19,7 @@ import os,re,random, threading,time,subprocess,asyncio,shutil,img2pdf,json,reque
 
 from pypdf import PdfReader
 
-from PIL import Image 
+from PIL import Image
 from pypdf import PdfWriter, PdfReader
 import pypdfium2 as pdfium
 from textwrap import wrap

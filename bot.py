@@ -40,7 +40,7 @@ ffmpeg, _ = run.get_or_fetch_platform_executables_else_raise()
 
 Merge_Quee = {}
 public_q =[]
-Renm_L = []
+Callback_D = {}
 
 
 def Check_Gtoken(api_key) : 
@@ -1542,8 +1542,10 @@ def callback_query(CLIENT,CallbackQuery):
     
   elif Method in ('Trim','Renm'):
    bot.delete_messages(User_Id,CallbackQuery.message.id)
+   if not User_Id in list(Callback_D.keys()) :
+    Callback_D[User_Id] = {"Trim":False,'Renm':False}
+   Callback_D[User_Id][Method] = True
    if Method == 'Renm' :
-     Renm_L.append(User_Id)
      Text = Renm_msg
    elif Method == 'Trim' :
 
@@ -1584,21 +1586,21 @@ def refunc(client,message):
     reply_msg.delete()
     Quee = public_q
     replied = file_msg.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
-    Pdf_Trim_Pattern = r"^\d+(?:[,-/]\d+(?:-\d+)?)*$"
-    Media_Trim_Pattern = r"\d{,2}:\d{2}"
     
-    if User_Id in Renm_L :
+    if Callback_D[User_Id]["Renm"] :
+
       Process = 'Renm'
       Text = Msg_Text.replace(' ','|')
-      Renm_L.remove(User_Id)
 
-    elif re.search(Pdf_Trim_Pattern,Msg_Text) or re.search(Media_Trim_Pattern,Msg_Text) or  '~' in Msg_Text  :
+    elif Callback_D[User_Id]["Trim"] :
+        
         Process = 'Trim'
         Text = Msg_Text.strip()
         if ' ' in Text:
           Text = Msg_Text.replace(' ','|')
 
     Item = f"{Process}_{file_id}_{Text}_{replied.id}_{User_Id}"
+    Callback_D[User_Id][Process] = False
     Item_add(Item)
 
 ##############

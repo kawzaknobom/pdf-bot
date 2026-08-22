@@ -1,11 +1,12 @@
-import pymongo
+import pymongo,os
+
+Mongo_String = os.environ['Mongo_String']
 
 class Mongo_Db():
   
   def __init__(self,Db_Name,Col_Name):
     self.Db_Name = Db_Name
     self.Col_Name = Col_Name
-    Mongo_String = "mongodb+srv://kawzaknobo515151_db_user:QobMDe1T0ywH9Oe2@cluster0.9sfhsyx.mongodb.net/"
     myclient = pymongo.MongoClient(Mongo_String)
     MyDb = myclient[self.Db_Name]
     self.Col = MyDb[self.Col_Name]

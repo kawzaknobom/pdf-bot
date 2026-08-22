@@ -21,6 +21,7 @@ tahweel
 internetarchive
 static_ffmpeg
 EbookLib
+pymongo
 
 tgbot-ping
 Flask

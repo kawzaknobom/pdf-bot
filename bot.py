@@ -38,6 +38,11 @@ from google.genai import types
 from static_ffmpeg import run
 ffmpeg, _ = run.get_or_fetch_platform_executables_else_raise()
 
+
+from Mongo_Class import *
+
+MUB_Db = Mongo_Db("Telegram_Db","MUB")
+
 Merge_Quee = {}
 public_q =[]
 Callback_D = {}
@@ -93,8 +98,6 @@ bot,Bot_Identifier = Pyrogram_Client(Bot_Token)
 Close_Loop = False
 
 Public_Loop = False
-
-main_dl_path = f'./downloads_{Bot_Identifier}/'
 
 
 #### Bot Funcs ####
@@ -810,15 +813,15 @@ def Ocr_Func(Ocr_Path):
 
   
 def Callback_Add(CallbackQuery):
-  Quee = public_q
+  Quee = MUB_Db.Grap_Values("Tasks","MainQ")
   replied = CallbackQuery.edit_message_text(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
   Item = CallbackQuery.data + f'_{replied.id}_{CallbackQuery.from_user.id}'
   Item_add(Item)
 
 def Item_add(Item):
   User_Id = int(Item.split("_")[-1])
-  Quee = public_q
-  Quee.append(Item)
+  Quee = "MainQ"
+  MUB_Db.Insert_Item("Tasks",Quee,Item)
   loop_name = "Public_Loop"
   if not globals()[loop_name] :	
     globals()[loop_name] = True
@@ -945,7 +948,8 @@ def Media_Trim(file_path,Rate):
 
 ###### Main Loop ####
 
-def reload_loop(process):
+def reload_loop(process,qlist):
+      public_q = qlist
       if process in public_q :
         msg_list = process.split('_')
         rp_msg_id = int(msg_list[-2])
@@ -957,15 +961,18 @@ def reload_loop(process):
         except :
           reply_msg.delete()
           reply_msg = File_Msg.reply("لقد تخطيت الحد الزمني الأقصى للطلب ( 30 دقيقة )")
-        del public_q[0]
+        public_q.remove(process)
+        MUB_Db.Delete_Item("Tasks","MainQ" ,process)
         thread = threading.Thread(target=Multi_loop)
         thread.start()
 
 def Multi_loop():
 
-  Multi_Q = public_q
+  Multi_Q = MUB_Db.Grap_Values("Tasks","MainQ")
+  if len(Multi_Q) == 0 :
+    return 
   for obj in range (0,len(Multi_Q)) :
-   timer = threading.Timer(900, reload_loop, args=[public_q[0]])
+   timer = threading.Timer(900, reload_loop, args=[Multi_Q[0],Multi_Q])
    timer.start()
 
    for elem in range (1,len(Multi_Q)) :
@@ -1192,12 +1199,13 @@ def Multi_loop():
    if C_Process in Multi_Q : 
     globals()['Close_Loop'] = False
     del Multi_Q[0]
+    MUB_Db.Delete_Item("Tasks","MainQ" ,Multi_Q[0])
     timer.cancel()
    else :
     globals()['Close_Loop'] = True
     break
   if not globals()['Close_Loop'] :
-    if len(Multi_Q) != 0 :
+    if len(MUB_Db.Grap_Values("Tasks","MainQ")) != 0 :
         return Multi_loop()
     else :
       loop_name = "Public_Loop"
@@ -1321,7 +1329,7 @@ def command1(bot,message):
       
       message.reply(text = Text,reply_markup = InlineKeyboardMarkup(Buttons))
      else :
-      Quee = public_q 
+      Quee = MUB_Db.Grap_Values("Tasks","MainQ") 
       replied = Replied_Msg.edit_text(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
       Key = f'{Method}_{message.from_user.id}'
       Msgs_ids = '_'.join(Merge_Quee[Key][1])
@@ -1454,7 +1462,7 @@ def _telegram_file(client, message):
 @bot.on_callback_query()
 def callback_query(CLIENT,CallbackQuery):
   User_Id = CallbackQuery.from_user.id
-  Quee = public_q
+  Quee = MUB_Db.Grap_Values("Tasks","MainQ")
   Callback_List = CallbackQuery.data.split('_')
   Method = Callback_List[0]
   Msg_Id = Callback_List[1]
@@ -1587,7 +1595,7 @@ def refunc(client,message):
   
     ReplyMsg_Text = reply_msg.text
     reply_msg.delete()
-    Quee = public_q
+    Quee = MUB_Db.Grap_Values("Tasks","MainQ")
     replied = file_msg.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
     
     if Callback_D[User_Id]["Renm"] :
@@ -1623,6 +1631,7 @@ def _telegram_file(client, message):
 def main():
     try:
         bot.start()
+        Multi_loop()
         print("✅ pdf Bot is ONLINE!")
         idle()
     finally:

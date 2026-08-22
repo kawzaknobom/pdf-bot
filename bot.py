@@ -347,6 +347,7 @@ def Gemini_BTxt(TxtFile,Req_Count,lang_sy='ar',Api_Index=0) :
 
     
 def Google_CTxt(TxtFile,Txt_File,Text,lang_sy,Req_Count=0,Limit=20000):
+  loop = asyncio.get_event_loop()
   rest = ''
   with open(Txt_File,'a') as f : 
     if len(Text) > Limit : 
@@ -362,14 +363,14 @@ def Google_CTxt(TxtFile,Txt_File,Text,lang_sy,Req_Count=0,Limit=20000):
           part = part[:-len(rest)-1]
         Txt_Part = TxtFile.replace('.txt',f'_P0000{Num}.txt') 
         open(Txt_Part,'a').write(part)
-        Res_Text,Req_Count =  asyncio.run(Google_BTxt(Txt_Part,Req_Count,lang_sy))
+        Res_Text,Req_Count =  loop.run_until_complete(Google_BTxt(Txt_Part,Req_Count,lang_sy))
         if Res_Text == 'None':
           Limit = Limit - 1000
           return Google_CTxt(TxtFile,Txt_File,Text,lang_sy,Req_Count,Limit)
         f.write(Res_Text)
         os.remove(Txt_Part)
     else : 
-      Res_Text,Req_Count = asyncio.run(Google_BTxt(TxtFile,Req_Count,lang_sy))
+      Res_Text,Req_Count = loop.run_until_complete(Google_BTxt(TxtFile,Req_Count,lang_sy))
       f.write(Res_Text)
       
 def Rmv_Trans(Res):
@@ -961,6 +962,7 @@ def reload_loop(process):
         thread.start()
 
 def Multi_loop():
+
   Multi_Q = public_q
   for obj in range (0,len(Multi_Q)) :
    timer = threading.Timer(900, reload_loop, args=[public_q[0]])
@@ -1190,6 +1192,7 @@ def Multi_loop():
    if C_Process in Multi_Q : 
     globals()['Close_Loop'] = False
     del Multi_Q[0]
+    timer.cancel()
    else :
     globals()['Close_Loop'] = True
     break
@@ -1543,7 +1546,7 @@ def callback_query(CLIENT,CallbackQuery):
   elif Method in ('Trim','Renm'):
    bot.delete_messages(User_Id,CallbackQuery.message.id)
    if not User_Id in list(Callback_D.keys()) :
-    Callback_D[User_Id] = {"Trim":False,'Renm':False}
+    Callback_D[User_Id] = {"Trim":False,"Renm":False}
    Callback_D[User_Id][Method] = True
    if Method == 'Renm' :
      Text = Renm_msg

@@ -1059,7 +1059,7 @@ def Multi_loop():
         Details =  f"اسم الملف : \n {File_Name} \n حجم الملف : \n {round(int(Size)/(1024*1024),2)} ميغا بايت  "
         reply_msg.reply(Details)
         
-      elif process in ['PMerge','IMerge','PMake','Zip','TMerge','ToArch'] : 
+      elif process in ['PMerge','IMerge','PMake','Zip','TMerge','ToArch','VMerge','AMerge'] : 
         
         Files_Ids = msg_list[1:-2]
         if process == 'IMerge' :
@@ -1543,7 +1543,7 @@ def callback_query(CLIENT,CallbackQuery):
   if Method == 'Yes':
     CallbackQuery.edit_message_text("أهلا بك 🌿 ")
 
-  elif Method in ('PMake','PMerge','IMerge','Zip','TMerge','ToArch') :
+  elif Method in ('PMake','PMerge','IMerge','Zip','TMerge','ToArch','VMerge','AMerge') :
     if Method == 'PMerge':
       Word = 'الملفات'
       Cmd = '/P_Finish'

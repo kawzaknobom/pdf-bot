@@ -121,9 +121,9 @@ Ex_Pdf_Limit = 500
 Trim_Op = [['قص','Trim']]
 Epub_Opts = Cbx_Option 
 Media_Options = [['تضخيم','Amplify'],['تسريع','Speeden'],['تبطيئ','Slowen'],['تحويل','Convert'],['تغيير الصوت','Change']] + Compress_Op + Trim_Op + Other_Options
-Video_Options = [['تحويل','Convert']] + Compress_Op + Trim_Op + Other_Options
+Video_Options = [['تحويل','Convert'],['دمج','AMerge']] + Compress_Op + Trim_Op + Other_Options
 # Video_Options = Media_Options + [['كتم الصوت','Mute'],['إبدال الصوت','SubAud'],['دمج','VMerge']]
-Audio_Options = Trim_Op + Other_Options
+Audio_Options = [['دمج','AMerge']] + Trim_Op + Other_Options
 # Audio_Options = Media_Options  +  [['دمج','AMerge'],['إزالة الصمت','Silence'],['تقطيع','Frag']]
 
 
@@ -421,7 +421,20 @@ def Get_Msg(bot,Chat_id,msg_id):
   except Exception as err : 
     bot.send_message(-1001655903083,str(err))
     pass
-  
+
+def Vid_Merge(Vid_Txt) :
+  Vid_File = Vid_Txt.replace('.txt','_VMerged.mkv')
+  Vid_Cmd = f'ffmpeg -f concat -safe 0 -i "{Vid_Txt}" -c copy "{Vid_File}"'
+  os.system(Vid_Cmd)
+  return Vid_File
+
+def Aud_Merge(Txt_File):
+    Mp3_File = Txt_File.replace('.txt','_Merged.mp3')
+    Aud_Merge_Cmd = f'ffmpeg -f concat -safe 0 -i "{Txt_File}" "{Mp3_File}" -y'
+    os.system(Aud_Merge_Cmd)
+    os.remove(Txt_File)
+    return Mp3_File
+
 def Send_Text_Res(Media_Msg,Text): 
   if len(Text) <= 4096 :
     if len(Text.strip()) != 0 :
@@ -890,6 +903,19 @@ def Universal_Concat(message,Merge_Quee,Method):
             process = 'صناعة pdf'
           Type =  'صورة'
 
+        elif message.audio or message.voice :
+                  Word = 'الصوتيات'
+                  Cmd = '/A_Finish'
+                  C_Cmd = '/A_Clear'
+                  process = 'الدمج'
+                  Type =  'صوتية'
+                
+        elif message.video :
+                  Word = 'الفيديوهات'
+                  Cmd = '/V_Finish'
+                  C_Cmd = '/V_Clear'
+                  process = 'الدمج'
+                  Type =  'فيديو'
 
         elif message.document : 
           if message.document.file_name.lower().endswith(Image_forms) : 
@@ -916,6 +942,19 @@ def Universal_Concat(message,Merge_Quee,Method):
             C_Cmd = '/T_Clear'
             process = 'الدمج'
             Type =  'ملفاً'
+
+          elif message.document.file_name.lower().endswith(Audio_Forms) : 
+                      Word = 'الصوتيات'
+                      Cmd = '/A_Finish'
+                      C_Cmd = '/A_Clear'
+                      process = 'الدمج'
+                      Type =  'صوتية'
+          elif message.document.file_name.lower().endswith(Video_Forms) : 
+                      Word = 'الفيديوهات'
+                      Cmd = '/V_Finish'
+                      C_Cmd = '/V_Clear'
+                      process = 'الدمج'
+                      Type =  'فيديو'
             
       M_Text = f"""
       ▪️عدد {Word} 👈 {len(Merge_Quee[Method][1])} {Type}
@@ -1027,7 +1066,7 @@ def Multi_loop():
           Files_Ids = msg_list[1:-3]
         Process_List,Msg_List = Multi_Op_Dl(bot,dl_path,Files_Ids,user_id)
 
-        if process in ['PMerge','IMerge','PMake','Zip','TMerge']:
+        if process in ['PMerge','IMerge','PMake','Zip','TMerge','VMerge','AMerge']:
           if process == 'PMerge' : 
             Res_File = Pdf_Merge(Process_List)
           elif process == 'TMerge':
@@ -1044,6 +1083,25 @@ def Multi_loop():
             else :
               File_Msg.reply('غير مسموح بأكثر من عشر صور ')
             
+          elif process == 'VMerge' : 
+            Ext = '.' + Process_List[0].split('.')[-1]
+            mergtxt = Process_List[0].replace(Ext,'.txt')
+            for File_Elm in Process_List :
+              Main_Dir = ('.' if File_Elm[0] == '.' else '' ) + ('/'.join(File_Elm.split('/')[:-1])) + '/'
+              New_Name = f"Vid_{random.randint(0,1000)}.mp4"
+              New_File = Main_Dir+New_Name
+              os.rename(File_Elm,New_File)
+              open(mergtxt,'a').write(f"file '{New_File}' \n")
+            Res_File = Vid_Merge(mergtxt)
+
+          elif process == 'AMerge' :
+            Ext = '.' + Process_List[0].split('.')[-1]
+            mergtxt = Process_List[0].replace(Ext,'.txt')
+            for File_Elm in Process_List :
+              mp3_path = Mp3_Conv(File_Elm)
+              open(mergtxt,'a').write(f"file '{mp3_path}' \n")
+            Res_File = Aud_Merge(mergtxt)
+
           elif process == 'PMake' : 
             Res_File = Pdf_Make(Process_List)
           elif process == 'Zip' :
@@ -1396,6 +1454,8 @@ def _telegram_file(client, message):
   PMerge_Key = f'PMerge_{User_Id}'
   TMerge_Key = f'TMerge_{User_Id}'
   AUpload_Key = f'ToArch_{User_Id}'
+  AMerge_Key = f'AMerge_{User_Id}'
+  VMerge_Key = f'VMerge_{User_Id}'
 
   if Zip_Key in list(Merge_Quee.keys()):
     Universal_Concat(message,Merge_Quee,Zip_Key)
@@ -1421,6 +1481,14 @@ def _telegram_file(client, message):
      if file_name.lower().endswith('txt') :
       Universal_Concat(message,Merge_Quee,TMerge_Key)
       return
+    elif AMerge_Key in list(Merge_Quee.keys()):
+         if message.audio or message.voice or message.document.file_name.lower().endswith(Audio_Forms) :
+          Universal_Concat(message,Merge_Quee,AMerge_Key)
+          return
+    elif VMerge_Key in list(Merge_Quee.keys()):
+         if message.video or message.document.file_name.lower().endswith(Video_Forms) :
+          Universal_Concat(message,Merge_Quee,VMerge_Key)
+          return
 
   if message.photo or file_name.lower().endswith(Image_forms)  :
     Options =  Photo_Options + Pdf_Image_Option
@@ -1510,6 +1578,19 @@ def callback_query(CLIENT,CallbackQuery):
       Word = 'الصور'
       Cmd = '/IP_Finish'
       C_Cmd = '/IP_Clear'
+
+    elif Method == 'AMerge':
+        
+          Word = 'الصوتيات'
+          Cmd = '/A_Finish'
+          C_Cmd = '/A_Clear'
+        
+    elif Method == 'VMerge' :
+
+          Word = 'الفيديوهات'
+          Cmd = '/V_Finish'
+          C_Cmd = '/V_Clear'
+    
       
     Key = f'{Method}_{User_Id}'
     if Key in list(Merge_Quee.keys()):

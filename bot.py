@@ -1163,7 +1163,10 @@ def Multi_loop():
             if File.lower().endswith(('.pdf')):
                   Extract_Dir = Pdf_Extract(File)
                   Msgs_List = Upld_Dir_Func(Extract_Dir,File_Msg)
-
+            elif File.lower().endswith(('.zip')):
+              shutil.unpack_archive(File, dl_path)
+              os.remove(File)
+              Msgs_List = Upld_Dir_Func(dl_path,File_Msg)
             elif File.lower().endswith(('.epub')): 
               Res_File = extract_epub(File)
               Upld_File(Res_File,File_Msg)
@@ -1509,7 +1512,8 @@ def _telegram_file(client, message):
   elif file_name.lower().endswith('epub') : 
   
       Options = Epub_Opts
-
+  elif file_name.lower().endswith('zip') : 
+    Options = Ex_Opt + Other_Options
   else : 
     Options = Other_Options
 

@@ -959,8 +959,11 @@ def reload_loop(process,qlist):
         try : 
             reply_msg.edit_text("لقد تخطيت الحد الزمني الأقصى للطلب ( 15 دقيقة )")
         except :
-          reply_msg.delete()
-          reply_msg = File_Msg.reply("لقد تخطيت الحد الزمني الأقصى للطلب ( 30 دقيقة )")
+          try : 
+            reply_msg.delete()
+            reply_msg = File_Msg.reply("لقد تخطيت الحد الزمني الأقصى للطلب ( 30 دقيقة )")
+          except : 
+            pass
         public_q.remove(process)
         MUB_Db.Delete_Item("Tasks","MainQ" ,process)
         thread = threading.Thread(target=Multi_loop)

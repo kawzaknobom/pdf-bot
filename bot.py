@@ -1631,7 +1631,6 @@ def _telegram_file(client, message):
 def main():
     try:
         bot.start()
-        Multi_loop()
         print("✅ pdf Bot is ONLINE!")
         idle()
     finally:

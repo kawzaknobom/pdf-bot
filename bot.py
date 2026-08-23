@@ -424,13 +424,13 @@ def Get_Msg(bot,Chat_id,msg_id):
 
 def Vid_Merge(Vid_Txt) :
   Vid_File = Vid_Txt.replace('.txt','_VMerged.mkv')
-  Vid_Cmd = f'ffmpeg -f concat -safe 0 -i "{Vid_Txt}" -c copy "{Vid_File}"'
+  Vid_Cmd = f'{ffmpeg} -f concat -safe 0 -i "{Vid_Txt}" -c copy "{Vid_File}"'
   os.system(Vid_Cmd)
   return Vid_File
 
 def Aud_Merge(Txt_File):
     Mp3_File = Txt_File.replace('.txt','_Merged.mp3')
-    Aud_Merge_Cmd = f'ffmpeg -f concat -safe 0 -i "{Txt_File}" "{Mp3_File}" -y'
+    Aud_Merge_Cmd = f'{ffmpeg} -f concat -safe 0 -i "{Txt_File}" "{Mp3_File}" -y'
     os.system(Aud_Merge_Cmd)
     os.remove(Txt_File)
     return Mp3_File

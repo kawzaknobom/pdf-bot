@@ -1198,8 +1198,8 @@ def Multi_loop():
          pass
    if C_Process in Multi_Q : 
     globals()['Close_Loop'] = False
+    MUB_Db.Delete_Item("Tasks","MainQ",Multi_Q[0])
     del Multi_Q[0]
-    MUB_Db.Delete_Item("Tasks","MainQ" ,Multi_Q[0])
     timer.cancel()
    else :
     globals()['Close_Loop'] = True

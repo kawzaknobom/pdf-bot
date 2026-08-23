@@ -1632,6 +1632,7 @@ def main():
     try:
         bot.start()
         print("✅ pdf Bot is ONLINE!")
+        Multi_loop()
         idle()
     finally:
         if bot.is_connected:

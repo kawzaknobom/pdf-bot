@@ -1481,13 +1481,13 @@ def _telegram_file(client, message):
      if file_name.lower().endswith('txt') :
       Universal_Concat(message,Merge_Quee,TMerge_Key)
       return
-    elif AMerge_Key in list(Merge_Quee.keys()):
-         if message.audio or message.voice or file_name.lower().endswith(Audio_Forms) :
-          Universal_Concat(message,Merge_Quee,AMerge_Key)
-          return
     elif VMerge_Key in list(Merge_Quee.keys()):
          if message.video or file_name.lower().endswith(Video_Forms) :
           Universal_Concat(message,Merge_Quee,VMerge_Key)
+          return
+    elif AMerge_Key in list(Merge_Quee.keys()):
+         if message.audio or message.voice or file_name.lower().endswith(Audio_Forms) :
+          Universal_Concat(message,Merge_Quee,AMerge_Key)
           return
 
   if message.photo or file_name.lower().endswith(Image_forms)  :
@@ -1579,19 +1579,18 @@ def callback_query(CLIENT,CallbackQuery):
       Cmd = '/IP_Finish'
       C_Cmd = '/IP_Clear'
 
+    elif Method == 'VMerge' :
+
+          Word = 'الفيديوهات'
+          Cmd = '/V_Finish'
+          C_Cmd = '/V_Clear'
+
     elif Method == 'AMerge':
         
           Word = 'الصوتيات'
           Cmd = '/A_Finish'
           C_Cmd = '/A_Clear'
         
-    elif Method == 'VMerge' :
-
-          Word = 'الفيديوهات'
-          Cmd = '/V_Finish'
-          C_Cmd = '/V_Clear'
-    
-      
     Key = f'{Method}_{User_Id}'
     if Key in list(Merge_Quee.keys()):
      del Merge_Quee[Key]

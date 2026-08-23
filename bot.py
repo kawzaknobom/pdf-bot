@@ -1482,11 +1482,11 @@ def _telegram_file(client, message):
       Universal_Concat(message,Merge_Quee,TMerge_Key)
       return
     elif AMerge_Key in list(Merge_Quee.keys()):
-         if message.audio or message.voice or message.document.file_name.lower().endswith(Audio_Forms) :
+         if message.audio or message.voice or file_name.lower().endswith(Audio_Forms) :
           Universal_Concat(message,Merge_Quee,AMerge_Key)
           return
     elif VMerge_Key in list(Merge_Quee.keys()):
-         if message.video or message.document.file_name.lower().endswith(Video_Forms) :
+         if message.video or file_name.lower().endswith(Video_Forms) :
           Universal_Concat(message,Merge_Quee,VMerge_Key)
           return
 

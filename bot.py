@@ -419,7 +419,8 @@ def Get_Msg(bot,Chat_id,msg_id):
       time.sleep(e.value)
       return Get_Msg(bot,Chat_id,msg_id)
   except Exception as err : 
-      pass
+    bot.send_message(-1001655903083,str(err))
+    pass
   
 def Send_Text_Res(Media_Msg,Text): 
   if len(Text) <= 4096 :

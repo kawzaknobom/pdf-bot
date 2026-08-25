@@ -79,6 +79,7 @@ access_key = os.environ['access_key']
 secret_key = os.environ['secret_key']
 admins = os.environ['admins']
 Gemini_Tokens = os.environ['Gemini_Tokens']
+reload_sec = os.environ['reload_sec']
 Apis = Filter_Apis(Gemini_Tokens)
 
 Admins = admins.split(',')
@@ -994,8 +995,9 @@ def reload_loop(process,qlist):
         msg_list = process.split('_')
         rp_msg_id = int(msg_list[-2])
         user_id = int(msg_list[-1])
+        file_id = int(msg_list[1])
         reply_msg = Get_Msg(bot,user_id,rp_msg_id)
-        File_Msg = Get_Msg(bot,user_id,msg_list[1])
+        File_Msg = Get_Msg(bot,user_id,file_id)
         try : 
             reply_msg.edit_text("لقد تخطيت الحد الزمني الأقصى للطلب ( 15 دقيقة )")
         except :
@@ -1015,7 +1017,7 @@ def Multi_loop():
   if len(Multi_Q) == 0 :
     return 
   for obj in range (0,len(Multi_Q)) :
-   timer = threading.Timer(900, reload_loop, args=[Multi_Q[0],Multi_Q])
+   timer = threading.Timer(reload_sec, reload_loop, args=[Multi_Q[0],Multi_Q])
    timer.start()
 
    for elem in range (1,len(Multi_Q)) :

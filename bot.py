@@ -1017,7 +1017,7 @@ def Multi_loop():
   if len(Multi_Q) == 0 :
     return 
   for obj in range (0,len(Multi_Q)) :
-   timer = threading.Timer(reload_sec, reload_loop, args=[Multi_Q[0],Multi_Q])
+   timer = threading.Timer(int(reload_sec), reload_loop, args=[Multi_Q[0],Multi_Q])
    timer.start()
 
    for elem in range (1,len(Multi_Q)) :

@@ -989,36 +989,12 @@ def Media_Trim(file_path,Rate):
 
 ###### Main Loop ####
 
-def reload_loop(process,qlist):
-      public_q = qlist
-      if process in public_q :
-        msg_list = process.split('_')
-        rp_msg_id = int(msg_list[-2])
-        user_id = int(msg_list[-1])
-        file_id = int(msg_list[1])
-        reply_msg = Get_Msg(bot,user_id,rp_msg_id)
-        File_Msg = Get_Msg(bot,user_id,file_id)
-        try : 
-            reply_msg.edit_text("لقد تخطيت الحد الزمني الأقصى للطلب ( 15 دقيقة )")
-        except :
-          try : 
-            reply_msg.delete()
-            reply_msg = File_Msg.reply("لقد تخطيت الحد الزمني الأقصى للطلب ( 30 دقيقة )")
-          except : 
-            pass
-        public_q.remove(process)
-        MUB_Db.Delete_Item("Tasks","MainQ" ,process)
-        thread = threading.Thread(target=Multi_loop)
-        thread.start()
-
 def Multi_loop():
 
   Multi_Q = MUB_Db.Grap_Values("Tasks","MainQ")
   if len(Multi_Q) == 0 :
     return 
   for obj in range (0,len(Multi_Q)) :
-   timer = threading.Timer(int(reload_sec), reload_loop, args=[Multi_Q[0],Multi_Q])
-   timer.start()
 
    for elem in range (1,len(Multi_Q)) :
         try :

@@ -1682,9 +1682,11 @@ def refunc(client,message):
     file_id = reply_msg.reply_to_message_id
     file_msg = Get_Msg(bot,User_Id,file_id)
     message.delete()
-  
     ReplyMsg_Text = reply_msg.text
-    reply_msg.delete()
+    try : 
+      reply_msg.delete()
+    except : 
+      pass
     Quee = MUB_Db.Grap_Values("Tasks","MainQ")
     replied = file_msg.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
     

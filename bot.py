@@ -96,8 +96,6 @@ bot,Bot_Identifier = Pyrogram_Client(Bot_Token)
 
 #####
 
-Close_Loop = False
-
 Public_Loop = False
 
 
@@ -558,8 +556,7 @@ def Upld_File(file,Msg,cap=' ',isogg=False):
     time.sleep(e.value)
     return Upld_File(file,Msg,cap)
   except Exception as err : 
-        Err = f'حدث خطأ ما 😞 \n\n {err}'
-        raise Exception(Err) 
+        pass
   
 def Upld_Dir_Func(Extract_Dir,Msg):
   Msgs_List = [] 
@@ -1239,18 +1236,12 @@ def Multi_loop():
         reply_msg.edit_text(err)
        except : 
          pass
-   if C_Process in Multi_Q : 
-    globals()['Close_Loop'] = False
-    MUB_Db.Delete_Item("Tasks","MainQ",Multi_Q[0])
-    del Multi_Q[0]
-    timer.cancel()
-   else :
-    globals()['Close_Loop'] = True
-    break
-  if not globals()['Close_Loop'] :
-    if len(MUB_Db.Grap_Values("Tasks","MainQ")) != 0 :
+
+   MUB_Db.Delete_Item("Tasks","MainQ",Multi_Q[0])
+   del Multi_Q[0]
+   if len(MUB_Db.Grap_Values("Tasks","MainQ")) != 0 :
         return Multi_loop()
-    else :
+   else :
       loop_name = "Public_Loop"
       if globals()[loop_name] :	
         globals()[loop_name] = False

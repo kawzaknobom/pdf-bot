@@ -971,8 +971,7 @@ def Media_Trim(file_path,Rate):
   strt_point = point_list[0]
   end_point = point_list[1]
   Ext = '.' + file_path.split('.')[-1]
-  Ext_Res = ".mp3" if Ext.lower() in Audio_Forms else ".mp4" 
-  Res_File = file_path.replace(Ext,f"_Trimmed{Ext_Res}")
+  Res_File = file_path.replace(Ext,f"_Trimmed{Ext}")
   if file_path.lower().endswith(Audio_Forms): 
     Trim_Cmd = f'{ffmpeg} -y -ss {strt_point} -to {end_point} -i "{file_path}" -map 0:a -vn -c copy "{Res_File}"'
     os.system(Trim_Cmd)

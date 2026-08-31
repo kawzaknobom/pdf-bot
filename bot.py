@@ -145,7 +145,14 @@ Txt_Trim_Msg = """
 🛑 الآن أرسل جملة البداية والنهاية بهذه الصورة 
  start ~ end 
 """
-Media_Trim_Msg = "الآن أرسل نقطة البداية والنهاية بهذه الصورة \n\n hh:mm:ss-hh:mm:ss"
+Media_Trim_Msg = """الآن أرسل نقطة البداية والنهاية بهذه الصورة
+
+hh:mm:ss-hh:mm:ss
+
+♦️ يمكنك إرسال أكتر من مدى 
+
+ مثال | hh:mm:ss-hh:mm:ss,hh:mm:ss-hh:mm:ss,hh:mm:ss-hh:mm:ss
+"""
 
 
 Audio_Forms = (".mp3",".ogg",".m4a",".aac",".flac",".wav",".wma",".opus",".3gpp")
@@ -968,8 +975,8 @@ def Universal_Concat(message,Merge_Quee,Method):
 
 def Media_Trim(file_path,Rate):
   point_list = Rate.split('-') 
-  strt_point = point_list[0]
-  end_point = point_list[1]
+  strt_point = point_list[0].strip()
+  end_point = point_list[1].strip()
   Ext = '.' + file_path.split('.')[-1]
   Res_File = file_path.replace(Ext,f"_Trimmed{Ext}")
   if file_path.lower().endswith(Audio_Forms): 
@@ -1098,6 +1105,7 @@ def Multi_loop():
        else : 
          if not File_Msg.text :
           File = File_Dl(File_Msg,dl_path)
+
          if process == 'Trim' :
            
            if File.lower().endswith((Audio_Forms+Video_Forms)) :
@@ -1374,7 +1382,7 @@ def command1(bot,message):
 @bot.on_message(filters.command('start') & filters.private)
 def command1(bot,message):
    User_Id = message.from_user.id
-   message.reply(' تصميم \n\n @sunnay6626')
+   message.reply(' أنا بوت متعدد الاستعمالات \n\n أرسل صورة أو صوتية أو فيديو أو مستند واختر ما يناسب')
    bot.set_bot_commands([
         BotCommand("start", "بدء "),
         BotCommand("translate", " تفعيل الترجمة"),

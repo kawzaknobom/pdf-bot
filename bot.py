@@ -138,7 +138,7 @@ Pdf_Trim_Msg = """
 
  ♦️ يمكنك إرسال أكتر من مدى 
 
- مثال | 1-5,7,8,13-16
+ مثال | 1-5 7 8 13-16
 """
 
 Txt_Trim_Msg = """
@@ -151,7 +151,7 @@ hh:mm:ss-hh:mm:ss
 
 ♦️ يمكنك إرسال أكتر من مدى 
 
- مثال | hh:mm:ss-hh:mm:ss,hh:mm:ss-hh:mm:ss,hh:mm:ss-hh:mm:ss
+ مثال | hh:mm:ss-hh:mm:ss hh:mm:ss-hh:mm:ss hh:mm:ss-hh:mm:ss
 """
 
 
@@ -1108,9 +1108,11 @@ def Multi_loop():
 
          if process == 'Trim' :
            
+           if '|' in Rate : 
+                Rate = Rate.replace('|',' ')
            if File.lower().endswith((Audio_Forms+Video_Forms)) :
-             if ',' in Rate :
-               Cases = Rate.split(',')
+             if ' ' in Rate :
+               Cases = Rate.split(' ')
                for Case in Cases : 
                   Res_File,cap = Media_Trim(File,Case)
                   Upld_File(Res_File,File_Msg,cap)
@@ -1120,20 +1122,14 @@ def Multi_loop():
 
            elif File.lower().endswith(('pdf')) :
 
-            if any(x in Rate for x in [',','،']):
-             if ',' in Rate : 
-                splitor = ','
-             else : 
-                splitor = '،'
-             Cases = Rate.split(splitor)
-             for Case in Cases : 
-               Pdf_Cases(Case,File,File_Msg)
+            if ' ' in Rate : 
+              Cases = Rate.split(" ")
+              for Case in Cases : 
+                Pdf_Cases(Case,File,File_Msg)
             else : 
              Pdf_Cases(Rate,File,File_Msg)
 
            elif File.lower().endswith('txt'):
-             if '|' in Rate : 
-                Rate = Rate.replace('|',' ')
              Phrase_List = Rate.split('~')
              Start_ph = Phrase_List[0]
              End_ph = Phrase_List[-1]

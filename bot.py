@@ -79,7 +79,6 @@ access_key = os.environ['access_key']
 secret_key = os.environ['secret_key']
 admins = os.environ['admins']
 Gemini_Tokens = os.environ['Gemini_Tokens']
-reload_sec = os.environ['reload_sec']
 Apis = Filter_Apis(Gemini_Tokens)
 
 Admins = admins.split(',')
@@ -972,7 +971,8 @@ def Media_Trim(file_path,Rate):
   strt_point = point_list[0]
   end_point = point_list[1]
   Ext = '.' + file_path.split('.')[-1]
-  Res_File = file_path.replace(Ext,f"_Trimmed{Ext}")
+  Ext_Res = ".mp3" if Ext.lower() in Audio_Forms else ".mp4" 
+  Res_File = file_path.replace(Ext,f"_Trimmed{Ext_Res}")
   if file_path.lower().endswith(Audio_Forms): 
     Trim_Cmd = f'{ffmpeg} -i "{file_path}" -ss {strt_point} -to {end_point} "{Res_File}" -y'
     os.system(Trim_Cmd)

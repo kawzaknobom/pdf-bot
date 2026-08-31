@@ -974,7 +974,7 @@ def Media_Trim(file_path,Rate):
   Ext_Res = ".mp3" if Ext.lower() in Audio_Forms else ".mp4" 
   Res_File = file_path.replace(Ext,f"_Trimmed{Ext_Res}")
   if file_path.lower().endswith(Audio_Forms): 
-    Trim_Cmd = f'{ffmpeg} -i "{file_path}" -ss {strt_point} -to {end_point} "{Res_File}" -y'
+    Trim_Cmd = f'{ffmpeg} -ss {strt_point} -to {end_point} -i "{file_path}" -c copy -y "{Res_File}"'
     os.system(Trim_Cmd)
   else :
     Trim_Cmd = f'{ffmpeg} -i "{file_path}" -ss {strt_point} -strict -2 -to {end_point} -c:a aac -codec:v h264 -b:v 1000k "{Res_File}" -y '
@@ -1631,8 +1631,11 @@ def callback_query(CLIENT,CallbackQuery):
    file_msg.reply_text(Text,reply_markup=ForceReply(True),reply_to_message_id=file_msg.id)
   
   elif Method in ('Ocr','2Pdf','Det','Ex','Marg','Unlock','Compress','Convert') :
-   
-    replied = CallbackQuery.edit_message_text(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
+
+    try : 
+      replied = CallbackQuery.edit_message_text(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
+    except : 
+      pass
     File_Id = Callback_List[-1]
     Item = f"{Method}_{File_Id}_{replied.id}_{User_Id}"
     Item_add(Item)

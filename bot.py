@@ -741,8 +741,7 @@ def Pdf_Merge(Files_List):
  Merger.write(Pdf_File)
  return Pdf_File
 
-def Pdf_Trim(File,Start,End):
-    Reader = PdfReader(File)
+def Pdf_Trim(File,Reader,Start,End):
     Writer = PdfWriter()
     Res = File.replace('.pdf','_Trim.pdf')
     Pages = (Start,End)
@@ -852,7 +851,7 @@ def Mp3_Conv(File):
   os.system(Mp3_Cmd)
   return Mp3_File
 
-def Pdf_Cases(Case,File,Msg):
+def Pdf_Cases(Case,File,Reader,Msg):
   if any(x in Case for x in ('-','/')):
     if '-' in Case : 
       Sep =  '-' 
@@ -861,7 +860,7 @@ def Pdf_Cases(Case,File,Msg):
     point_list = Case.split(Sep) 
     Start = int(point_list[0])
     End = int(point_list[1])
-    Pdf_File = Pdf_Trim(File,Start,End)
+    Pdf_File = Pdf_Trim(File,Reader,Start,End)
     cap =  ( f"`{Start}` to `{End}`")
     Upld_File(Pdf_File,Msg,cap)
   else : 
@@ -1122,12 +1121,13 @@ def Multi_loop():
 
            elif File.lower().endswith(('pdf')) :
 
+            Reader = PdfReader(File)
             if ' ' in Rate : 
               Cases = Rate.split(" ")
               for Case in Cases : 
-                Pdf_Cases(Case,File,File_Msg)
+                Pdf_Cases(Case,File,Reader,File_Msg)
             else : 
-             Pdf_Cases(Rate,File,File_Msg)
+             Pdf_Cases(Rate,File,Reader,File_Msg)
 
            elif File.lower().endswith('txt'):
              Phrase_List = Rate.split('~')

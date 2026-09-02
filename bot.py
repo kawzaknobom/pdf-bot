@@ -121,7 +121,7 @@ Epub_Opts = Cbx_Option
 Media_Options = [['تضخيم','Amplify'],['تسريع','Speeden'],['تبطيئ','Slowen'],['تحويل','Convert'],['تغيير الصوت','Change']] + Compress_Op + Trim_Op + Other_Options
 Video_Options = [['تحويل','Convert'],['دمج','VMerge']] + Compress_Op + Trim_Op + Other_Options
 # Video_Options = Media_Options + [['كتم الصوت','Mute'],['إبدال الصوت','SubAud'],['دمج','VMerge']]
-Audio_Options = [['دمج','AMerge']] + Trim_Op + Other_Options
+Audio_Options = [['دمج','AMerge'],['تخط الصمت','Silence']] + Trim_Op + Other_Options
 # Audio_Options = Media_Options  +  [['دمج','AMerge'],['إزالة الصمت','Silence'],['تقطيع','Frag']]
 
 
@@ -164,8 +164,17 @@ Image_forms = (".jpg",".jpeg",".png",'.tif','webp')
 ### Pdf Funcs ###
 
 
+def Media_Skip(file_path):
+  Ext = '.' + file_path.split('.')[-1]
+  Res_File = file_path.replace(Ext,"_Skipped.mp3")
+  Skip_Cmd = f'{ffmpeg} -i "{file_path}" -af "silenceremove=start_periods=1:stop_periods=-1:start_threshold=-30dB:stop_threshold=-50dB:start_silence=2:stop_silence=2" "{Res_File}"'
+  os.system(Skip_Cmd)
+  return Res_File
+
+  
 def Encode_Vid(File):
-    Mp4_File = ('.' if File[1]=='/' else '') + File.split('.')[(1 if File[0] == '.' else 0)] + '_encoded.mp4'
+    Ext = '.' + File.split('.')[-1]
+    Mp4_File = File.replace(Ext,'_Encoded.mp4')
     Vid_Encode = f'{ffmpeg} -i "{File}" -c:a aac -codec:v h264 -b:v 1000k "{Mp4_File}" -y'
     os.system(Vid_Encode)
     return Mp4_File
@@ -1201,7 +1210,7 @@ def Multi_loop():
                     File_Msg.reply_document(Txt_File)
          
   
-         elif process in ('Compress','Marg','Unlock','Renm','Convert') :
+         elif process in ('Compress','Marg','Unlock','Renm','Convert','Silence') :
               
               if process == 'Renm':
                Ext = File.split('.')[-1]
@@ -1227,6 +1236,8 @@ def Multi_loop():
                   Res_File = Encode_Vid(File)
               elif process == 'Convert' :
                 Res_File = Mp3_Conv(File)
+              elif process == 'Silence' :
+                Res_File = Media_Skip(File)
               Upld_File(Res_File,File_Msg)
       try :
         reply_msg.edit_text('تمت  ☑️')
@@ -1632,7 +1643,7 @@ def callback_query(CLIENT,CallbackQuery):
    
    file_msg.reply_text(Text,reply_markup=ForceReply(True),reply_to_message_id=file_msg.id)
   
-  elif Method in ('Ocr','2Pdf','Det','Ex','Marg','Unlock','Compress','Convert') :
+  elif Method in ('Ocr','2Pdf','Det','Ex','Marg','Unlock','Compress','Convert','Silence') :
 
     try : 
       replied = CallbackQuery.edit_message_text(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")

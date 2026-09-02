@@ -752,8 +752,7 @@ def Pdf_Trim(File,Reader,Start,End):
     Writer.write(open(Res,'wb'))
     return Res
 
-def Pdf_Page(File,Page):
-  Reader = PdfReader(File)
+def Pdf_Page(File,Reader,Page):
   Writer = PdfWriter()
   Writer.add_page(Reader.pages[Page-1])
   Res = File.replace('.pdf','_Trim.pdf')
@@ -864,7 +863,7 @@ def Pdf_Cases(Case,File,Reader,Msg):
     cap =  ( f"`{Start}` to `{End}`")
     Upld_File(Pdf_File,Msg,cap)
   else : 
-    Pdf_File = Pdf_Page(File,int(Case))
+    Pdf_File = Pdf_Page(File,Reader,int(Case))
     Extract_Dir = Pdf_Extract(Pdf_File)
     Msgs_List = Upld_Dir_Func(Extract_Dir,Msg)
 

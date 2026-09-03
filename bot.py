@@ -1193,7 +1193,8 @@ def Multi_loop():
                   Accent = Trans_Model
                   voice = msg_list[4]
                   Voice = f"{Lang}-{Accent}-{voice}"
-                  Res_File = asyncio.run(tts_ai(open(Txt_File,'r').read(),Voice))
+                  Text = open(Txt_File,'r').read().replace(T_linebreak,'\n')
+                  Res_File = asyncio.run(tts_ai(Text,Voice))
                   Upld_File(Res_File,File_Msg)
 
 

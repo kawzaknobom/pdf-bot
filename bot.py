@@ -1655,7 +1655,7 @@ def callback_query(CLIENT,CallbackQuery):
          voices = asyncio.run(edge_tts.list_voices())
          male_shortnames = [voice["ShortName"] for voice in voices if voice.get("Gender") == "Male"]           
          lang = Callback_List[-2]
-         accent = Callback_List[-2]
+         accent = Callback_List[-1]
          target_prefix = f"{lang}-{accent}-"
          voice_names = [voice.split("-")[-1] for voice in male_shortnames if voice.startswith(target_prefix)]
          CHOOSE_UR_Mod = f"اختر المؤدي"

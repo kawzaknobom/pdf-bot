@@ -1400,6 +1400,7 @@ def command1(bot,message):
             g_langs = sorted(list(set(name.split("-")[0].lower() for name in male_shortnames)))
           elif Method == 'Trans' : 
             process = 'الترجمة'
+            g_langs = g_langs
           Text = f"اختر اللغة المراد {process} إليها"
           Buttons = []
           for lang in g_langs : 
@@ -1682,6 +1683,8 @@ def callback_query(CLIENT,CallbackQuery):
         male_shortnames = [voice["ShortName"] for voice in voices if voice.get("Gender") == "Male"]           
         Lang_Mods = list(set(name.split("-")[1] for name in male_shortnames if name.lower().startswith(f"{lang}-")))
        Rom_Num = int(len(Lang_Mods)/3)
+       if Rom_Num == 0 :
+         Rom_Num += 1 
        CHOOSE_UR_Mod = f"اختر {word} "
        LANGS_BUTTONS = []
        for Mod in Lang_Mods :
@@ -1700,6 +1703,8 @@ def callback_query(CLIENT,CallbackQuery):
         for lang in g_langs : 
           
           Rom_Num = int(len(g_langs)/3)
+          if Rom_Num == 0 :
+            Rom_Num += 1 
           Data = f"{CallbackQuery.data}_{lang.split('|')[-1].strip()}"
           if g_langs.index(lang) > Rom_Num-1 :
            LANGS_BUTTONS[g_langs.index(lang)%Rom_Num].append(InlineKeyboardButton(lang.split('|')[0],callback_data=Data))

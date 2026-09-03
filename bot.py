@@ -903,11 +903,15 @@ def Universal_Concat(message,Merge_Quee,Method):
       else :
         if message.text : 
           Word = 'النصوص'
+          Type =  'نصاً'
           if method == 'Trans' :
             Cmd = '/FTranslate'
             C_Cmd = '/cancel_translate'
             process = 'الترجمة'
-            Type =  'نصاً'
+          elif method == 'TTS' :
+            Cmd = '/FTTS'
+            C_Cmd = '/cancel_tts'
+            process = 'التحويل'
 
         elif message.photo : 
           Word = 'الصور'
@@ -1778,11 +1782,15 @@ def _telegram_file(client, message):
     
   User_Id = message.from_user.id
   Trans_Key = f'Trans_{User_Id}'
+  TTS_Key = f'TTS_{User_Id}'
   if Trans_Key in list(Merge_Quee.keys()): 
       if message.text : 
         Universal_Concat(message,Merge_Quee,Trans_Key)
         return
-
+  elif TTS_Key in list(Merge_Quee.keys()): 
+      if message.text : 
+        Universal_Concat(message,Merge_Quee,TTS_Key)
+        return
       
 def main():
     try:

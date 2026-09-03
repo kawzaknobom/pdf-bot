@@ -22,6 +22,7 @@ internetarchive
 static_ffmpeg
 EbookLib
 pymongo
+edge-tts
 
 tgbot-ping
 Flask

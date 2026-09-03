@@ -13,7 +13,7 @@ from pyrogram.enums import MessageEntityType
 
 
 from functools import reduce
-import os,re,random, threading,time,subprocess,shutil,img2pdf,json,requests
+import os,re,random, threading,time,subprocess,shutil,img2pdf,json,requests,edge_tts
 
 
 from pypdf import PdfReader
@@ -163,6 +163,13 @@ Image_forms = (".jpg",".jpeg",".png",'.tif','webp')
 
 ### Pdf Funcs ###
 
+
+
+async def tts_ai(text,VOICE):
+ Res = f'{VOICE}.mp3'
+ communicate = edge_tts.Communicate(text, VOICE)
+ await communicate.save(Res)
+ return Res
 
 def Media_Skip(file_path):
   Ext = '.' + file_path.split('.')[-1]
@@ -1158,9 +1165,9 @@ def Multi_loop():
               Upld_File(Res_File,File_Msg)
 
 
-         elif process in ['Ocr','Trans']:
+         elif process in ['Ocr','Trans','TTS']:
             if File_Msg.text : 
-              if process == 'Trans' :
+              if process in ['Trans','TTS'] :
                 Trans_Model = msg_list[3]
                 Check_Dir(dl_path)
                 Txt_File = f"{dl_path}{str(random.randint(0,1000)).zfill(4)}.txt"
@@ -1170,12 +1177,22 @@ def Multi_loop():
                   with open(Txt_File,'a') as f : 
                         msg = Get_Msg(bot,user_id,textid)
                         f.write(msg.text + T_linebreak )
-                if Trans_Model == 'GTrans' : 
-                    Txt_File = Google_Trans_Txt(Txt_File,Rate)
-                    File_Msg.reply_document(Txt_File)
-                elif Trans_Model == 'Gemini' : 
-                  Txt_File = Gemini_Trans_Txt(File_Msg,Txt_File,Rate)
-                Send_Text_Res(File_Msg,open(Txt_File,'r').read())
+                if process == "Trans" : 
+                  if Trans_Model == 'GTrans' : 
+                      Txt_File = Google_Trans_Txt(Txt_File,Rate)
+                      File_Msg.reply_document(Txt_File)
+                  elif Trans_Model == 'Gemini' : 
+                    Txt_File = Gemini_Trans_Txt(File_Msg,Txt_File,Rate)
+                  Send_Text_Res(File_Msg,open(Txt_File,'r').read())
+                elif process == "TTS" : 
+                  Lang = Rate 
+                  Accent = Trans_Model
+                  voice = msg_list[4]
+                  Voice = f"{Lang}-{Accent}-{Voice}"
+                  Res_File = asyncio.run(tts_ai(open(Txt_File,'r').read(),Voice))
+                  Upld_File(Res_File,File_Msg)
+
+
                 del Merge_Quee[Key]
             else : 
 
@@ -1261,7 +1278,7 @@ def Multi_loop():
 
 ###### Bot Funcs #####
 
-@bot.on_message((filters.command('P_Clear') | filters.command('IM_Clear') | filters.command('A_Clear') | filters.command('V_Clear') | filters.command('IP_Clear') | filters.command('Z_Clear') | filters.command('T_Clear') | filters.command('AU_Clear') | filters.command('cancel_translate') ) & filters.private)
+@bot.on_message((filters.command('P_Clear') | filters.command('IM_Clear') | filters.command('A_Clear') | filters.command('V_Clear') | filters.command('IP_Clear') | filters.command('Z_Clear') | filters.command('T_Clear') | filters.command('AU_Clear') | filters.command('cancel_translate') | filters.command('cancel_tts') ) & filters.private)
 def command1(bot,message):
   
    User_Id = message.from_user.id
@@ -1301,13 +1318,16 @@ def command1(bot,message):
            Method = 'Trans'
            Key = f'{Method}_{User_Id}'
 
+   elif message.text.strip() == '/cancel_tts':
+              Method = 'TTS'
+              Key = f'{Method}_{User_Id}'
    Reply_Id = Merge_Quee[Key][0][0]
    Replied_Msg = Get_Msg(bot,User_Id,Reply_Id)
    Replied_Msg.edit_text('تم الإلغاء ✅')
    del Merge_Quee[Key]
 
 
-@bot.on_message((filters.command('P_Finish') | filters.command('IM_Finish') | filters.command('A_Finish') | filters.command('V_Finish') | filters.command('IP_Finish') | filters.command('Z_Finish') | filters.command('T_Finish') | filters.command('AU_Finish') | filters.command('FTranslate')) & filters.private)
+@bot.on_message((filters.command('P_Finish') | filters.command('IM_Finish') | filters.command('A_Finish') | filters.command('V_Finish') | filters.command('IP_Finish') | filters.command('Z_Finish') | filters.command('T_Finish') | filters.command('AU_Finish') | filters.command('FTranslate') | filters.command('FTTS')) & filters.private)
 def command1(bot,message):
   
    User_Id = message.from_user.id
@@ -1347,13 +1367,17 @@ def command1(bot,message):
         Method = 'Trans'
         Key = f'{Method}_{User_Id}'
 
+   elif message.text.strip() == '/FTTS':
+           Method = 'TTS'
+           Key = f'{Method}_{User_Id}'
+    
    Replied_Msg_id = Merge_Quee[Key][0][0]
    Replied_Msg = Get_Msg(bot,User_Id,Replied_Msg_id)
-   if len(Merge_Quee[Key][1]) < 2 and not Method in ('PMake','Zip','ToArch','Trans') :
+   if len(Merge_Quee[Key][1]) < 2 and not Method in ('PMake','Zip','ToArch','Trans','TTS') :
         Replied_Msg.edit_text("لقد أرسلت ملفاً واحداً فقط !")
         return
    else :
-     if Method in ['IMerge','Trans'] :
+     if Method in ['IMerge','Trans','TTS'] :
        
       Replied_Msg.delete()
       if Method == 'IMerge':
@@ -1363,16 +1387,25 @@ def command1(bot,message):
           for Mod in Modes : 
             Buttons.append([InlineKeyboardButton(Mod[0],callback_data=f'IMerge_{Mod[1]}_{message.from_user.id}')])
 
-      elif Method == 'Trans':
-          Text = "اختر اللغة المراد الترجمة إليها"
+      elif Method in ['Trans','TTS']:
+          if Method == 'TTS' : 
+            process = 'التحويل'
+            voices = asyncio.run(edge_tts.list_voices())
+            male_shortnames = [voice["ShortName"] for voice in voices if voice.get("Gender") == "Male"]
+            g_langs = sorted(list(set(name.split("-")[0].lower() for name in male_shortnames)))
+          elif Method == 'Trans' : 
+            process = 'الترجمة'
+          Text = f"اختر اللغة المراد {process} إليها"
           Buttons = []
           for lang in g_langs : 
             Rom_Num = int(len(g_langs)/3)
-            Data = f"{Method}_{message.id}_{lang.split('|')[-1].strip()}"
+            lang_sym = lang.split('|')[-1].strip() if Method == 'Trans' else lang
+            Data = f"{Method}_{message.id}_{lang_sym}"
+            key = lang.split('|')[0] if Method == 'Trans' else lang 
             if g_langs.index(lang) > Rom_Num-1 :
-              Buttons[g_langs.index(lang)%Rom_Num].append(InlineKeyboardButton(lang.split('|')[0],callback_data=Data))
+              Buttons[g_langs.index(lang)%Rom_Num].append(InlineKeyboardButton(key,callback_data=Data))
             else : 
-              Buttons.append([InlineKeyboardButton(lang.split('|')[0],callback_data=Data)])
+              Buttons.append([InlineKeyboardButton(key,callback_data=Data)])
       
       message.reply(text = Text,reply_markup = InlineKeyboardMarkup(Buttons))
      else :
@@ -1392,26 +1425,40 @@ def command1(bot,message):
    bot.set_bot_commands([
         BotCommand("start", "بدء "),
         BotCommand("translate", " تفعيل الترجمة"),
-        BotCommand("cancel_translate", "إلغاء الترجمة")
+        BotCommand("cancel_translate", "إلغاء الترجمة"),
+        BotCommand("start_tts", "تفعيل نص إلى صوت"),
+        BotCommand("cancel_tts", "إلغاء نص إلى صوت")
     ])
 
-@bot.on_message(filters.command('translate') & filters.private)
+@bot.on_message((filters.command('translate') | filters.command('start_tts'))  & filters.private)
 def command1(bot,message):
        User_Id = message.from_user.id
-       Cmd = "/FTranslate"
-       C_Cmd = "/cancel_translate"
-       Method = "Trans"
-       Word = "النصوص"
+       cmd = message.text 
+       if cmd == "/translate" :
+        Cmd = "/FTranslate"
+        C_Cmd = "/cancel_translate"
+        Method = "Trans"
+        Word = "النصوص"
+        Process = "ترجمته"
+        Process_2 = "الترجمة"
+       elif cmd == "/start_tts" :
+        Cmd = "/FTTS"
+        C_Cmd = "/cancel_tts"
+        Method = "TTS"
+        Word = "النصوص"
+        Process = "تحويله إلى صوت"
+        Process_2 = "التحويل"
+         
        Key = f'{Method}_{User_Id}'
        if Key in list(Merge_Quee.keys()):
         del Merge_Quee[Key]
        Merge_Quee[Key] = [[],[]]
        M_Text = f"""
-       أرسل النص المراد ترجمته 
+       أرسل النص المراد {Process} 
          ▪️عدد {Word} 👈 {len(Merge_Quee[Key][1])} نصاً
          ▪️بعد الانتهاء اضغط الأمر 
          {Cmd}
-         ▪️لإلغاء عملية الترجمة ، اضغط الأمر 
+         ▪️لإلغاء عملية {Process_2} ، اضغط الأمر 
          {C_Cmd}
          """
        Replied = message.reply(M_Text)
@@ -1592,21 +1639,55 @@ def callback_query(CLIENT,CallbackQuery):
     Merge_Quee[Key][0].append(Replied.id)
   
 
-  elif Method == 'Trans':
-      if len(Callback_List) == 4 :
+  elif Method in ['Trans','TTS']:
+
+      if len(Callback_List) == 5 :
+        if Method == "TTS" :
+          Callback_Add(CallbackQuery)
+      elif len(Callback_List) == 4 :
+       if Method == "Trans" :
         Callback_Add(CallbackQuery)
-      
+       elif Method == "TTS" :
+         voices = asyncio.run(edge_tts.list_voices())
+         male_shortnames = [voice["ShortName"] for voice in voices if voice.get("Gender") == "Male"]           
+         land = Callback_List[-2]
+         accent = Callback_List[-2]
+         voice_names = [voice for voice in male_shortnames if voice.lower().startswith(f"{lang.lower()}-{accent.lower()}-")]
+         CHOOSE_UR_Mod = f"اختر المؤدي"
+         LANGS_BUTTONS = []
+         for Mod in voice_names :
+            j =  Mod
+            k = Mod
+            Data = f"{CallbackQuery.data}_{j}"
+            LANGS_BUTTONS.append([InlineKeyboardButton(k,callback_data=Data)])
+         CallbackQuery.edit_message_text(text = CHOOSE_UR_Mod,reply_markup = InlineKeyboardMarkup(LANGS_BUTTONS))
+
       elif len(Callback_List) == 3 :
+       if Method == 'Trans' :
+        word = 'النموذج'
         Lang_Mods = LANGS_Modules 
         if str(User_Id) in Admins :
           if Gemini_Model_Op[0] not in Lang_Mods :
             Lang_Mods += Gemini_Model_Op
-        CHOOSE_UR_Mod = "اختر النموذج "
-        LANGS_BUTTONS = []
-        for Mod in Lang_Mods : 
-          Data = f"{CallbackQuery.data}_{Mod[1]}"
-          LANGS_BUTTONS.append([InlineKeyboardButton(Mod[0],callback_data=Data)])
-        CallbackQuery.edit_message_text(text = CHOOSE_UR_Mod,reply_markup = InlineKeyboardMarkup(LANGS_BUTTONS))
+       elif Method == 'TTS' :
+        word = 'اللهجة'
+        lang = Callback_List[-1]
+        voices = asyncio.run(edge_tts.list_voices())
+        male_shortnames = [voice["ShortName"] for voice in voices if voice.get("Gender") == "Male"]           
+        Lang_Mods = list(set(name.split("-")[1] for name in male_shortnames if name.lower().startswith(f"{lang}-")))
+       Rom_Num = int(len(Lang_Mods)/3)
+       CHOOSE_UR_Mod = f"اختر {word} "
+       LANGS_BUTTONS = []
+       for Mod in Lang_Mods :
+          j =  Mod[1] if Method == 'Trans' else Mod
+          k = Mod[0] if Method == 'Trans' else Mod
+          Data = f"{CallbackQuery.data}_{j}"
+          if Lang_Mods.index(Mod) > Rom_Num-1 :
+            LANGS_BUTTONS[Lang_Mods.index(Mod)%Rom_Num].append(InlineKeyboardButton(k,callback_data=Data))
+          else :
+            LANGS_BUTTONS.append([InlineKeyboardButton(k,callback_data=Data)])
+       CallbackQuery.edit_message_text(text = CHOOSE_UR_Mod,reply_markup = InlineKeyboardMarkup(LANGS_BUTTONS))
+
       else :
         CHOOSE_UR_LANG = "اختر اللغة المراد الترجمة إليها"
         LANGS_BUTTONS = []

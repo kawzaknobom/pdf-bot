@@ -1656,7 +1656,7 @@ def callback_query(CLIENT,CallbackQuery):
          male_shortnames = [voice["ShortName"] for voice in voices if voice.get("Gender") == "Male"]           
          lang = Callback_List[-2]
          accent = Callback_List[-2]
-         voice_names = [voice for voice in male_shortnames if voice.lower().startswith(f"{lang.lower()}-{accent.lower()}-")]
+         voice_names = [voice for voice in male_shortnames if voice.startswith(f"{lang.lower()}-{accent.lower()}-")]
          CHOOSE_UR_Mod = f"اختر المؤدي"
          LANGS_BUTTONS = []
          for Mod in voice_names :

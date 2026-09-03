@@ -1397,19 +1397,19 @@ def command1(bot,message):
             process = 'التحويل'
             voices = asyncio.run(edge_tts.list_voices())
             male_shortnames = [voice["ShortName"] for voice in voices if voice.get("Gender") == "Male"]
-            g_langs = sorted(list(set(name.split("-")[0].lower() for name in male_shortnames)))
+            langs = sorted(list(set(name.split("-")[0].lower() for name in male_shortnames)))
           elif Method == 'Trans' : 
             process = 'الترجمة'
-            g_langs = g_langs
+            langs = g_langs
           Text = f"اختر اللغة المراد {process} إليها"
           Buttons = []
-          for lang in g_langs : 
-            Rom_Num = int(len(g_langs)/3)
+          for lang in langs : 
+            Rom_Num = int(len(langs)/3)
             lang_sym = lang.split('|')[-1].strip() if Method == 'Trans' else lang
             Data = f"{Method}_{message.id}_{lang_sym}"
             key = lang.split('|')[0] if Method == 'Trans' else lang 
-            if g_langs.index(lang) > Rom_Num-1 :
-              Buttons[g_langs.index(lang)%Rom_Num].append(InlineKeyboardButton(key,callback_data=Data))
+            if langs.index(lang) > Rom_Num-1 :
+              Buttons[langs.index(lang)%Rom_Num].append(InlineKeyboardButton(key,callback_data=Data))
             else : 
               Buttons.append([InlineKeyboardButton(key,callback_data=Data)])
       

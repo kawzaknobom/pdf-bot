@@ -13,7 +13,7 @@ from pyrogram.enums import MessageEntityType
 
 
 from functools import reduce
-import os,re,random, threading,time,subprocess,shutil,img2pdf,json,requests,edge_tts
+import os,re,random, threading,time,subprocess,shutil,img2pdf,json,requests,edge_tts,langid
 
 
 from pypdf import PdfReader
@@ -406,9 +406,8 @@ def Rmv_Trans(Res):
   return Res
 
 async def Detect_Lang(Text) : 
-  translator = Translator()
-  Lang = await translator.detect(Text)
-  return Lang.lang
+  lang, confidence = langid.classify(Text)
+  return lang
 
 async def Google_BTxt(TxtFile,Req_Count,lang_sy='ar') : 
   try : 

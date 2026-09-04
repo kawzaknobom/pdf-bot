@@ -23,6 +23,7 @@ static_ffmpeg
 EbookLib
 pymongo
 edge-tts
+langid
 
 tgbot-ping
 Flask

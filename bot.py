@@ -1411,7 +1411,6 @@ def command1(bot,message):
             msg = Get_Msg(bot,User_Id,msg_id)
             text = msg.text
             lanG = asyncio.run(Detect_Lang(text))
-            message.reply(lanG)
             if not lanG in langs : 
                  Reply_Id = Merge_Quee[Key][0][0]
                  Replied_Msg = Get_Msg(bot,User_Id,Reply_Id)

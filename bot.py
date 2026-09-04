@@ -1692,11 +1692,12 @@ def callback_query(CLIENT,CallbackQuery):
 
       elif len(Callback_List) == 3 :
        if Method == 'Trans' :
-        word = 'النموذج'
         Lang_Mods = LANGS_Modules 
         if str(User_Id) in Admins :
           if Gemini_Model_Op[0] not in Lang_Mods :
             Lang_Mods += Gemini_Model_Op
+        CHOOSE_UR_Mod = f"اختر النموذج"
+        LANGS_BUTTONS = []
         for Mod in Lang_Mods :
             Data = f"{CallbackQuery.data}_{Mod[1]}"
             LANGS_BUTTONS.append([InlineKeyboardButton(Mod[0],callback_data=Data)])

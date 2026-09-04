@@ -407,8 +407,8 @@ def Rmv_Trans(Res):
 
 async def Detect_Lang(Text) : 
   translator = Translator()
-  lang = translator.detect(Text).lang
-  return lang 
+  Lang = await translator.detect(Text)
+  return Lang.lang
 
 async def Google_BTxt(TxtFile,Req_Count,lang_sy='ar') : 
   try : 

@@ -1414,7 +1414,7 @@ def command1(bot,message):
                  Replied_Msg.edit_text('تم الإلغاء ✅')
                  del Merge_Quee[Key]
                  return      
-            langs = list(set(name.split("-")[1] for name in male_shortnames if name.lower().startswith(f"{lanG}-")))
+            langs = sorted(list(set(name.split("-")[1] for name in male_shortnames if name.lower().startswith(f"{lanG}-"))))
           elif Method == 'Trans' : 
             process = 'الترجمة'
             word = 'اللغة'

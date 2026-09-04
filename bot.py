@@ -1697,7 +1697,10 @@ def callback_query(CLIENT,CallbackQuery):
         if str(User_Id) in Admins :
           if Gemini_Model_Op[0] not in Lang_Mods :
             Lang_Mods += Gemini_Model_Op
-       
+        for Mod in Lang_Mods :
+            Data = f"{CallbackQuery.data}_{Mod[1]}"
+            LANGS_BUTTONS.append([InlineKeyboardButton(Mod[0],callback_data=Data)])
+        CallbackQuery.edit_message_text(text = CHOOSE_UR_Mod,reply_markup = InlineKeyboardMarkup(LANGS_BUTTONS))
       else :
         CHOOSE_UR_LANG = "اختر اللغة المراد الترجمة إليها"
         LANGS_BUTTONS = []

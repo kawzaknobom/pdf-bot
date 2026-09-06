@@ -1392,7 +1392,10 @@ def command1(bot,message):
    else :
      if Method in ['IMerge','Trans','TTS'] :
        
-      Replied_Msg.delete()
+      try : 
+        Replied_Msg.delete()
+      except : 
+        pass
       if Method == 'IMerge':
           Text = "اختر نمط الدمج "
           Modes = [['أفقياً','SBS'],['رأسياً','UD']]
@@ -1414,7 +1417,10 @@ def command1(bot,message):
             if not lanG in langs : 
                  Reply_Id = Merge_Quee[Key][0][0]
                  Replied_Msg = Get_Msg(bot,User_Id,Reply_Id)
-                 Replied_Msg.edit_text('تم الإلغاء ✅')
+                 try : 
+                  Replied_Msg.edit_text('تم الإلغاء ✅')
+                 except : 
+                   pass
                  del Merge_Quee[Key]
                  return      
             langs = sorted(list(set(name.split("-")[1] for name in male_shortnames if name.lower().startswith(f"{lanG}-"))))

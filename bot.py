@@ -1330,9 +1330,9 @@ def command1(bot,message):
    elif message.text.strip() == '/cancel_tts':
               Method = 'TTS'
               Key = f'{Method}_{User_Id}'
-   Reply_Id = Merge_Quee[Key][0][0]
-   Replied_Msg = Get_Msg(bot,User_Id,Reply_Id)
    try : 
+    Reply_Id = Merge_Quee[Key][0][0]
+    Replied_Msg = Get_Msg(bot,User_Id,Reply_Id)
     Replied_Msg.edit_text('تم الإلغاء ✅')
    except : 
      Replied_Msg.delete()
@@ -1384,8 +1384,11 @@ def command1(bot,message):
            Method = 'TTS'
            Key = f'{Method}_{User_Id}'
     
-   Replied_Msg_id = Merge_Quee[Key][0][0]
-   Replied_Msg = Get_Msg(bot,User_Id,Replied_Msg_id)
+   try : 
+    Replied_Msg_id = Merge_Quee[Key][0][0]
+    Replied_Msg = Get_Msg(bot,User_Id,Replied_Msg_id)
+   except : 
+     pass
    if len(Merge_Quee[Key][1]) < 2 and not Method in ('PMake','Zip','ToArch','Trans','TTS') :
         Replied_Msg.edit_text("لقد أرسلت ملفاً واحداً فقط !")
         return
@@ -1413,11 +1416,15 @@ def command1(bot,message):
             msg_id = Merge_Quee[Key][1][0]
             msg = Get_Msg(bot,User_Id,msg_id)
             text = msg.text
-            lanG = asyncio.run(Detect_Lang(text))
+            if '\n' in text : 
+              pretext = text.split('\n')[0]
+            else : 
+              pretext = " ".join(text.split()[:5])
+            lanG = asyncio.run(Detect_Lang(pretext))
             if not lanG in langs : 
-                 Reply_Id = Merge_Quee[Key][0][0]
-                 Replied_Msg = Get_Msg(bot,User_Id,Reply_Id)
                  try : 
+                  Reply_Id = Merge_Quee[Key][0][0]
+                  Replied_Msg = Get_Msg(bot,User_Id,Reply_Id)
                   Replied_Msg.edit_text('تم الإلغاء ✅')
                  except : 
                    pass

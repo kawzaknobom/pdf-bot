@@ -13,7 +13,7 @@ from pyrogram.enums import MessageEntityType
 
 
 from functools import reduce
-import os,re,random, threading,time,subprocess,shutil,img2pdf,json,requests,edge_tts,langid
+import os,re,random, threading,time,subprocess,shutil,img2pdf,json,requests,edge_tts,langid,cv2
 
 
 from pypdf import PdfReader
@@ -43,9 +43,7 @@ from Mongo_Class import *
 
 MUB_Db = Mongo_Db("Telegram_Db","MUB")
 
-Merge_Quee = {}
-public_q =[]
-Callback_D = {}
+Blur_Dict , callback_dict ,Callback_D , Merge_Quee = {},{},{},{}
 
 
 def Check_Gtoken(api_key) : 
@@ -100,6 +98,8 @@ Public_Loop = False
 
 #### Bot Funcs ####
 
+Photo_Blur_buttons = [['11','11'],['31','31'],['109 ','109 '],['185 ','185 '],['261 ','261 '],['491 ','491 ']]
+
 Premium_Opts = [['رفع لأرشيف','ToArch']]
 Compress_Op = [['ضغط','Compress']]
 Other_Opts = [['Zip','Zip']]
@@ -119,7 +119,7 @@ Ex_Pdf_Limit = 500
 Trim_Op = [['قص','Trim']]
 Epub_Opts = Cbx_Option 
 Media_Options = [['تضخيم','Amplify'],['تسريع','Speeden'],['تبطيئ','Slowen'],['تحويل','Convert'],['تغيير الصوت','Change']] + Compress_Op + Trim_Op + Other_Options
-Video_Options = [['تحويل','Convert'],['دمج','VMerge']] + Compress_Op + Trim_Op + Other_Options
+Video_Options = [['تحويل','Convert'],['دمج','VMerge'],['بلور','Blur']] + Compress_Op + Trim_Op + Other_Options
 # Video_Options = Media_Options + [['كتم الصوت','Mute'],['إبدال الصوت','SubAud'],['دمج','VMerge']]
 Audio_Options = [['دمج','AMerge'],['تخط الصمت','Silence']] + Trim_Op + Other_Options
 # Audio_Options = Media_Options  +  [['دمج','AMerge'],['إزالة الصمت','Silence'],['تقطيع','Frag']]
@@ -170,6 +170,211 @@ async def tts_ai(text,VOICE):
  communicate = edge_tts.Communicate(text, VOICE)
  await communicate.save(Res)
  return Res
+
+
+def Vid_Mk(Vid,Aud):
+  Ext = '.' + Vid.split('.')[-1]
+  Vid_Res = Vid.replace(Ext,'_Merged.mp4')
+  Sub_Cmd = f'{ffmpeg} -i "{Vid}" -i "{Aud}" -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 "{Vid_Res}" -y'
+  os.system(Sub_Cmd)
+  return Vid_Res
+
+#### Blur bot 
+
+def get_seconds(clock_time) :
+    splitted = clock_time.split(':')
+    if len(splitted) == 3 : 
+      hours, minutes, seconds = map(float, clock_time.split(':'))
+    elif len(splitted) == 2 : 
+      minutes = float(splitted[0])
+      seconds = float(splitted[-1])
+      hours = 0.0
+    if '.' in str(seconds) :
+       seconds += 0.03
+    total_seconds = (hours * 3600) + (minutes * 60) + seconds
+    return total_seconds
+
+def Ranges_ref(Ranges,fps) :
+    ranges = []
+    if len(Ranges) != 0 :
+      for Range in Ranges.split(' ') : 
+        splitted = Range.split('-') 
+        start = get_seconds(splitted[0])
+        end  = get_seconds(splitted[1])
+        ranges.append([ceil(start*fps),ceil((end)*fps)])
+    return ranges
+
+def isinrange(ret_num,Ranges):
+        for x in Ranges :
+         if ret_num in range(x[0],x[1]):
+           return True
+        return False
+        
+
+def Raw_Blur(file_path,Rate,Blur_File):
+  BlurMode = Blur_File['MainBlur']
+  Ext = '.' + file_path.split('.')[-1]
+  Res_File = file_path.replace(Ext,'_Blurred.mp4')
+  Aud = Mp3_Conv(file_path)
+  # file_path = Encode_Vid(file_path)
+  cap = cv2.VideoCapture(file_path)
+  if not cap.isOpened():
+    raise ValueError("Error opening video file")
+  fps = cap.get(cv2.CAP_PROP_FPS)
+
+  FullFrame = Ranges_ref(Blur_File['FullFrame'],fps)
+  RightHalf = Ranges_ref(Blur_File['RightHalf'],fps)
+  LeftHalf = Ranges_ref(Blur_File['LeftHalf'],fps)
+  UpperHalf = Ranges_ref(Blur_File['UpperHalf'],fps)
+  LowerHalf = Ranges_ref(Blur_File['LowerHalf'],fps)
+  RightThird = Ranges_ref(Blur_File['RightThird'],fps)
+  LeftThird = Ranges_ref(Blur_File['LeftThird'],fps)
+  UpperThird = Ranges_ref(Blur_File['UpperThird'],fps)
+  LowerThird = Ranges_ref(Blur_File['LowerThird'],fps)
+  RightThirdLeft = Ranges_ref(Blur_File['RightThirdLeft'],fps)
+  LeftThirdLeft = Ranges_ref(Blur_File['LeftThirdLeft'],fps)
+  UpperThirdLeft = Ranges_ref(Blur_File['UpperThirdLeft'],fps)
+  LowerThirdLeft = Ranges_ref(Blur_File['LowerThirdLeft'],fps)
+
+  totalNoFrames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+  durationInSeconds = totalNoFrames // fps
+  Stream_Dur = int(durationInSeconds)
+  width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+  height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+  fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+  out = cv2.VideoWriter(Res_File, fourcc, fps, (width, height))
+  ret_num = 0
+
+  while(True):
+    ret, frame = cap.read()
+    if ret:
+        ret_num += 1
+
+        if BlurMode == 'FullFrame' or isinrange(ret_num,FullFrame ) : 
+          frame = cv2.blur(frame, (Rate, Rate))
+        if BlurMode == 'RightHalf' or isinrange(ret_num,RightHalf ) : 
+          midpoint = width // 2
+          frame[0:height, midpoint:width] = cv2.blur(frame[0:height, midpoint:width], (Rate, Rate))
+        if BlurMode == 'LeftHalf' or isinrange(ret_num,LeftHalf ) : 
+          midpoint = width // 2
+          frame[0:height, 0:midpoint] = cv2.blur(frame[0:height, 0:midpoint], (Rate, Rate))
+        if BlurMode == 'UpperHalf' or isinrange(ret_num,UpperHalf ) : 
+          midpoint = height // 2
+          frame[0:midpoint, 0:width] = cv2.blur(frame[0:midpoint, 0:width], (Rate, Rate))
+        if BlurMode == 'LowerHalf' or isinrange(ret_num,LowerHalf ) : 
+          midpoint = height // 2
+          frame[midpoint:height, 0:width] = cv2.blur(frame[midpoint:height, 0:width], (Rate, Rate))
+        
+        if BlurMode == 'RightThird' or isinrange(ret_num,RightThird ) : 
+          midpoint = 2 * width // 3
+          frame[0:height, midpoint:width]  = cv2.blur(frame[0:height, midpoint:width] , (Rate, Rate))
+        if BlurMode == 'LeftThird' or isinrange(ret_num,LeftThird ) : 
+          midpoint = width // 3
+          frame[0:height, 0:midpoint] = cv2.blur(frame[0:height, 0:midpoint], (Rate, Rate))
+        if BlurMode == 'UpperThird' or isinrange(ret_num,UpperThird ) : 
+          midpoint = height // 3
+          frame[0:midpoint, 0:width] = cv2.blur(frame[0:midpoint, 0:width], (Rate, Rate))
+        if BlurMode == 'LowerThird' or isinrange(ret_num,LowerThird ) : 
+          midpoint = 2 * height // 3
+          frame[midpoint:height, 0:width] = cv2.blur(frame[midpoint:height, 0:width], (Rate, Rate))
+        
+        if BlurMode == 'RightThirdLeft' or isinrange(ret_num,RightThirdLeft ) : 
+          midpoint = 2 * width // 3
+          frame[0:height, 0:midpoint]  = cv2.blur(frame[0:height, 0:midpoint] , (Rate, Rate))
+        if BlurMode == 'LeftThirdLeft' or isinrange(ret_num,LeftThirdLeft ) : 
+          midpoint = width // 3
+          frame[0:height, midpoint:width] = cv2.blur(frame[0:height, midpoint:width], (Rate, Rate))
+        if BlurMode == 'UpperThirdLeft' or isinrange(ret_num,UpperThirdLeft ) : 
+          midpoint = height // 3
+          frame[midpoint:height, 0:width] = cv2.blur(frame[midpoint:height, 0:width], (Rate, Rate))
+        if BlurMode == 'LowerThirdLeft' or isinrange(ret_num,LowerThirdLeft ) : 
+          midpoint = 2 * height // 3
+          frame[0:midpoint, 0:width] = cv2.blur(frame[0:midpoint, 0:width], (Rate, Rate))
+      
+        out.write(frame)
+    else:
+        break 
+
+  cap.release()
+  out.release()
+  Res_File =  Vid_Mk(Res_File,Aud)
+  # Res_File =  Encode_Vid(Res_File)
+  return Res_File
+
+def Crop_Vid(file_path,Crop_Mode):
+  Ext = '.' + file_path.split('.')[-1]
+  Res_File = file_path.replace(Ext,'_Blurred.mp4')
+  Aud = Mp3_Conv(file_path)
+  # file_path = Encode_Vid(file_path)
+  cap = cv2.VideoCapture(file_path)
+  if not cap.isOpened():
+    raise ValueError("Error opening video file")
+  fps = cap.get(cv2.CAP_PROP_FPS)
+  totalNoFrames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+  durationInSeconds = totalNoFrames // fps
+  Stream_Dur = int(durationInSeconds)
+  width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+  height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+  out_width = width
+  out_height = height
+  if Crop_Mode == 'RightHalf': 
+    out_width = (width // 2)
+  elif Crop_Mode == 'RightThird': 
+    out_width = (2 * width // 3)
+  elif Crop_Mode == 'LeftHalf': 
+    out_width = width // 2
+  elif Crop_Mode == 'LeftThird': 
+    out_width = width // 3
+  elif Crop_Mode == 'UpperHalf': 
+    out_height = height // 2
+  elif Crop_Mode == 'UpperThird': 
+    out_height = height // 3
+  elif Crop_Mode == 'LowerHalf': 
+    out_height = (height // 2)
+  elif Crop_Mode == 'LowerThird': 
+    out_height = (2 * height // 3)
+  fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+  out = cv2.VideoWriter(Res_File, fourcc, fps, (out_width, out_height))
+  ret_num = 0
+  while(True):
+    ret, frame = cap.read()
+    if ret:
+        ret_num += 1
+
+        if Crop_Mode == 'RightHalf'  : 
+          midpoint = width // 2
+          frame = frame[0:height, 0:midpoint]
+        elif Crop_Mode == 'RightThird'  : 
+          midpoint = 2 * width // 3
+          frame = frame[0:height, 0:midpoint]
+        elif Crop_Mode == 'LeftHalf'  : 
+          midpoint = width // 2
+          frame = frame[0:height, midpoint:width]
+        elif Crop_Mode == 'LeftThird'  : 
+          midpoint = width // 3
+          frame = frame[0:height, midpoint:width]
+        elif Crop_Mode == 'UpperHalf'  : 
+          midpoint = height // 2
+          frame = frame[midpoint:height, 0:width]
+        elif Crop_Mode == 'UpperThird'  : 
+          midpoint = height // 3
+          frame = frame[midpoint:height, 0:width]
+        elif Crop_Mode == 'LowerHalf'  : 
+          midpoint = height // 2
+          frame = frame[0:midpoint, 0:width]
+        elif Crop_Mode == 'LowerThird'  : 
+          midpoint = 2 * height // 3
+          frame = frame[0:midpoint, 0:width]
+      
+        out.write(frame)
+    else:
+        break 
+
+  cap.release()
+  out.release()
+  Res_File =  Vid_Mk(Res_File,Aud)
+  # Res_File =  Encode_Vid(Res_File)
+  return Res_File
 
 def Media_Skip(file_path):
   Ext = '.' + file_path.split('.')[-1]
@@ -1236,13 +1441,23 @@ def Multi_loop():
                     File_Msg.reply_document(Txt_File)
          
   
-         elif process in ('Compress','Marg','Unlock','Renm','Convert','Silence') :
+         elif process in ('Crop','Blur','Compress','Marg','Unlock','Renm','Convert','Silence') :
               
               if process == 'Renm':
                Ext = File.split('.')[-1]
                Res_File = f"{dl_path}{Rate.replace('|',' ')}.{Ext}"
                Cmd = f'mv "{File}" "{Res_File}"'
                os.system(Cmd)
+
+              elif process == 'Crop' :
+                  Crop_Mode = Rate
+                  Res_File = Crop_Vid(File,Crop_Mode)
+              
+              elif process == 'Blur' :
+                key = f"{user_id}_{File_Msg.id}"
+                if File.lower().endswith(Video_Forms): 
+                  Blur_File = Blur_Dict[key]
+                  Res_File = Raw_Blur(File,int(Rate),Blur_File)
 
               elif process == 'Marg' :
                if Pdf_Page_Num(File) < Ex_Pdf_Limit : 
@@ -1679,6 +1894,55 @@ def callback_query(CLIENT,CallbackQuery):
     Merge_Quee[Key][0].append(Replied.id)
   
 
+  elif Method == 'Crop' :
+      key = f'{User_Id}_{file_msg.id}'
+      callback_dict[key] = CallbackQuery.data.strip()
+      CallbackQuery.message.delete()
+      Text = 'اختر نمط الـCrop \n\n سيتم بتر الجزء المختار من المقطع'
+      Buttons = [
+            [KeyboardButton("RightHalf"), KeyboardButton("LeftHalf")],
+            [KeyboardButton("UpperHalf"), KeyboardButton("LowerHalf")],
+            [KeyboardButton("RightThird"), KeyboardButton("LeftThird")],
+            [KeyboardButton("UpperThird"), KeyboardButton("LowerThird")]]
+      replied = file_msg.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons, resize_keyboard=True))
+  
+  
+  elif Method in ['Blur'] :
+    if len(Callback_List) > 2 : 
+          if file_msg.video : 
+            key = f'{User_Id}_{file_msg.id}'
+            callback_dict[key] = CallbackQuery.data.strip()
+            CallbackQuery.message.delete()
+            Text = 'اختر نمط البلور'
+            Buttons = [
+                  [KeyboardButton("Ranges"), KeyboardButton("Full Vid")]
+              ]
+            replied = file_msg.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons, resize_keyboard=True))
+  
+          elif file_msg.document : 
+            if file_msg.document.file_name.lower().endswith(Video_Forms) :
+              key = f'{User_Id}_{file_msg.id}'
+              callback_dict[key] = CallbackQuery.data.strip()
+              CallbackQuery.message.delete()
+              Text = 'اختر نمط البلور'
+              Buttons = [
+                  [KeyboardButton("Ranges"), KeyboardButton("Full Vid")]
+              ]
+              replied = file_msg.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons, resize_keyboard=True))   
+
+    else : 
+        CHOOSE_UR_BUTTONS = []
+        CHOOSE_UR_Option = "اختر ما تريد "
+        if Method == 'Blur':
+          Buttons = Photo_Blur_buttons
+        for method in Buttons : 
+               Text = method[0]
+               Data = CallbackQuery.data + '_' + method[1]
+               CHOOSE_UR_BUTTONS.append([InlineKeyboardButton(Text,callback_data=Data)])
+            
+        CallbackQuery.edit_message_text(text = CHOOSE_UR_Option,reply_markup = InlineKeyboardMarkup(CHOOSE_UR_BUTTONS))
+            
+
   elif Method in ['Trans','TTS']:
 
       if len(Callback_List) == 5 :
@@ -1808,15 +2072,143 @@ def _telegram_file(client, message):
   User_Id = message.from_user.id
   Trans_Key = f'Trans_{User_Id}'
   TTS_Key = f'TTS_{User_Id}'
-  if Trans_Key in list(Merge_Quee.keys()): 
-      if message.text : 
-        Universal_Concat(message,Merge_Quee,Trans_Key)
-        return
-  elif TTS_Key in list(Merge_Quee.keys()): 
-      if message.text : 
-        Universal_Concat(message,Merge_Quee,TTS_Key)
-        return
+  if any(key in list(Merge_Quee.keys()) for key in [TTS_Key,Trans_Key]) : 
+    if Trans_Key in list(Merge_Quee.keys()): 
+        if message.text : 
+          Universal_Concat(message,Merge_Quee,Trans_Key)
+          return
+    elif TTS_Key in list(Merge_Quee.keys()): 
+        if message.text : 
+          Universal_Concat(message,Merge_Quee,TTS_Key)
+          return
+  else :
+
+    Callback_Keys = list(callback_dict.keys())
+    if any(str(User_Id) in key for key in Callback_Keys) :
+      for Key in Callback_Keys :
+        if str(User_Id) in Key :
+          key = Key
+      CallbackList = callback_dict[key].split('_')
+      process = CallbackList[0]
+      file_id = CallbackList[1]
       
+      if process == 'Blur' :
+        if key not in list(Blur_Dict.keys()) :
+          Blur_Dict[key] = {'isfull':True,'MainBlur':'','RightHalf':'','LeftHalf':'','UpperHalf':'','LowerHalf':'','RightThird':'','LeftThird':'','UpperThird':'','LowerThird':'','RightThirdLeft':'','LeftThirdLeft':'','UpperThirdLeft':'','LowerThirdLeft':'','FullFrame':'','RightHalfK':False,"LeftHalfK":False,"UpperHalfK":False,"LowerHalfK":False,"RightThirdK":False,"LeftThirdK":False,"UpperThirdK":False,"LowerThirdK":False,"RightThirdLeftK":False,"LeftThirdLeftK":False,"UpperThirdLeftK":False,"LowerThirdLeftK":False,"FullFrameK":False}
+        
+        if Blur_Dict[key]['RightHalfK'] or Blur_Dict[key]['LeftHalfK'] or Blur_Dict[key]['UpperHalfK'] or Blur_Dict[key]['LowerHalfK'] or Blur_Dict[key]['RightThirdK'] or Blur_Dict[key]['LeftThirdK'] or Blur_Dict[key]['UpperThirdK'] or Blur_Dict[key]['LowerThirdK'] or Blur_Dict[key]['RightThirdLeftK'] or Blur_Dict[key]['LeftThirdLeftK'] or Blur_Dict[key]['UpperThirdLeftK'] or Blur_Dict[key]['LowerThirdLeftK'] or Blur_Dict[key]['FullFrameK']  :
+          
+          if Blur_Dict[key]['RightHalfK'] :
+            Blur_Dict[key]['RightHalf'] = message.text
+            Blur_Dict[key]['RightHalfK'] = False
+            message.reply('تم التلقيم')
+          elif Blur_Dict[key]['LeftHalfK'] :
+            Blur_Dict[key]['LeftHalf'] = message.text
+            Blur_Dict[key]['LeftHalfK'] = False
+            message.reply('تم التلقيم')
+          elif Blur_Dict[key]['UpperHalfK'] :
+            Blur_Dict[key]['UpperHalf'] = message.text
+            Blur_Dict[key]['UpperHalfK'] = False
+            message.reply('تم التلقيم')
+          elif Blur_Dict[key]['LowerHalfK'] :
+            Blur_Dict[key]['LowerHalf'] = message.text
+            Blur_Dict[key]['LowerHalfK'] = False
+            message.reply('تم التلقيم')
+          elif Blur_Dict[key]['RightThirdK'] :
+            Blur_Dict[key]['RightThird'] = message.text
+            Blur_Dict[key]['RightThirdK'] = False
+            message.reply('تم التلقيم')
+          elif Blur_Dict[key]['LeftThirdK'] :
+            Blur_Dict[key]['LeftThird'] = message.text
+            Blur_Dict[key]['LeftThirdK'] = False
+            message.reply('تم التلقيم')
+          elif Blur_Dict[key]['UpperThirdK']:
+            Blur_Dict[key]['UpperThird'] = message.text
+            Blur_Dict[key]['UpperThirdK'] = False
+            message.reply('تم التلقيم')
+          elif Blur_Dict[key]['LowerThirdK'] :
+            Blur_Dict[key]['LowerThird'] = message.text
+            Blur_Dict[key]['LowerThirdK'] = False
+            message.reply('تم التلقيم')
+          
+          elif Blur_Dict[key]['RightThirdLeftK'] :
+            Blur_Dict[key]['RightThirdLeft'] = message.text
+            Blur_Dict[key]['RightThirdLeftK'] = False
+            message.reply('تم التلقيم')
+          elif Blur_Dict[key]['LeftThirdLeftK'] :
+            Blur_Dict[key]['LeftThirdLeft'] = message.text
+            Blur_Dict[key]['LeftThirdLeftK'] = False
+            message.reply('تم التلقيم')
+          elif Blur_Dict[key]['UpperThirdLeftK']:
+            Blur_Dict[key]['UpperThirdLeft'] = message.text
+            Blur_Dict[key]['UpperThirdLeftK'] = False
+            message.reply('تم التلقيم')
+          elif Blur_Dict[key]['LowerThirdLeftK'] :
+            Blur_Dict[key]['LowerThirdLeft'] = message.text
+            Blur_Dict[key]['LowerThirdLeftK'] = False
+            message.reply('تم التلقيم')
+          
+          elif Blur_Dict[key]['FullFrameK'] :
+            Blur_Dict[key]['FullFrame'] = message.text
+            Blur_Dict[key]['FullFrameK'] = False
+            message.reply('تم التلقيم')
+          
+  
+        if message.text in ['Full Vid','Ranges'] :
+          if message.text == 'Full Vid' :
+            Text = 'اختر نمط البلور'
+          elif message.text == 'Ranges' :
+            Blur_Dict[key]['isfull'] = False
+            Text = 'اختر المدى مع ما يناسب '
+          Buttons = [
+            [KeyboardButton("FullFrame")],
+            [KeyboardButton("RightHalf"), KeyboardButton("LeftHalf")],
+            [KeyboardButton("UpperHalf"), KeyboardButton("LowerHalf")],
+            [KeyboardButton("RightThird"), KeyboardButton("LeftThird")],
+            [KeyboardButton("UpperThird"), KeyboardButton("LowerThird")],
+            [KeyboardButton("RightThirdLeft"), KeyboardButton("LeftThirdLeft")],
+            [KeyboardButton("UpperThirdLeft"), KeyboardButton("LowerThirdLeft")]
+            ]
+          if message.text == 'Ranges' :
+            Buttons += [[KeyboardButton("✔️")]]
+          replied = message.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons,resize_keyboard=True))
+          
+        
+        elif message.text in ['RightHalf','LeftHalf','UpperHalf','LowerHalf','RightThird','LeftThird','UpperThird','LowerThird','RightThirdLeft','LeftThirdLeft','UpperThirdLeft','LowerThirdLeft','FullFrame'] :
+          if Blur_Dict[key]['isfull'] :
+            Blur_Dict[key]['MainBlur'] = message.text
+            Item = callback_dict[key]
+            Quee = MUB_Db.Grap_Values("Tasks","MainQ") 
+            replied = message.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ",reply_markup=ReplyKeyboardRemove())
+            Item = Item + f'_{replied.id}_{User_Id}'
+            Item_add(Item)
+            callback_dict.pop(key)
+          else : 
+            Text = f'''الآن أرسل نطاقات الـ {message.text} بهذه الصورة
+              hh:mm:ss-hh:mm:ss
+              ويمكنك إرسال أكثر من مدى بهذه الصورة بترك مسافة بين كل مدى
+              hh:mm:ss-hh:mm:ss hh:mm:ss-hh:mm:ss hh:mm:ss-hh:mm:ss
+              '''
+            Blur_Dict[key][message.text+'K'] = True
+            message.reply(Text)
+        
+        elif message.text == '✔️' :
+            Item = callback_dict[key]
+            Quee = MUB_Db.Grap_Values("Tasks","MainQ") 
+            replied = message.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ",reply_markup=ReplyKeyboardRemove())
+            Item = Item + f'_{replied.id}_{User_Id}'
+            Item_add(Item)
+            callback_dict.pop(key)
+  
+      elif process == 'Crop' :
+        Crop_Mode = message.text 
+        Item = callback_dict[key]
+        Quee = MUB_Db.Grap_Values("Tasks","MainQ") 
+        replied = message.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ",reply_markup=ReplyKeyboardRemove())
+        Item = Item + f'_{Crop_Mode}_{replied.id}_{User_Id}'
+        Item_add(Item)
+        callback_dict.pop(key)
+  
 def main():
     try:
         bot.start()

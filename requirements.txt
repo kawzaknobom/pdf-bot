@@ -24,6 +24,7 @@ EbookLib
 pymongo
 edge-tts
 langid
+opencv-python
 
 tgbot-ping
 Flask

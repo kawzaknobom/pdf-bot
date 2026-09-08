@@ -324,11 +324,11 @@ def Crop_Vid(file_path,Crop_Mode):
   elif Crop_Mode == 'LeftHalf': 
     out_width = width // 2
   elif Crop_Mode == 'LeftThird': 
-    out_width = width // 3
+    out_width = (2 * width // 3)
   elif Crop_Mode == 'UpperHalf': 
     out_height = height // 2
   elif Crop_Mode == 'UpperThird': 
-    out_height = height // 3
+    out_height = (2 * height // 3)
   elif Crop_Mode == 'LowerHalf': 
     out_height = (height // 2)
   elif Crop_Mode == 'LowerThird': 

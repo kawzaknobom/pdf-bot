@@ -483,6 +483,7 @@ def Gemini_Trans(Text,lang_sy='ar',Req_Count=0,Api_Index=0):
 ترجم هذا النص بأكمله بدقة إلى {F_L}  👇
   
   """ + Text
+  config = types.GenerateContentConfig(automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True))
   try : 
     response = client.models.generate_content(model=Gemini_Model, contents=Translate_Prompt)
     Req_Count += 1

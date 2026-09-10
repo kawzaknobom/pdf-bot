@@ -99,6 +99,7 @@ Public_Loop = False
 #### Bot Funcs ####
 
 Photo_Blur_buttons = [['11','11'],['31','31'],['109 ','109 '],['185 ','185 '],['261 ','261 '],['491 ','491 ']]
+Amplify_Buttons = [['05db','05'],['10db','10'],['15db','15'],['20db','20'],['25db','25']]
 
 Premium_Opts = [['رفع لأرشيف','ToArch']]
 Compress_Op = [['ضغط','Compress']]
@@ -119,9 +120,9 @@ Ex_Pdf_Limit = 500
 Trim_Op = [['قص','Trim']]
 Epub_Opts = Cbx_Option 
 Media_Options = [['تضخيم','Amplify'],['تسريع','Speeden'],['تبطيئ','Slowen'],['تحويل','Convert'],['تغيير الصوت','Change']] + Compress_Op + Trim_Op + Other_Options
-Video_Options = [['تحويل','Convert'],['دمج','VMerge'],['بلور','Blur'],['Crop','Crop']] + Compress_Op + Trim_Op + Other_Options
+Video_Options = [['تحويل','Convert'],['دمج','VMerge'],['بلور','Blur'],['Crop','Crop'],['تضخيم','Amplify']] + Compress_Op + Trim_Op + Other_Options
 # Video_Options = Media_Options + [['كتم الصوت','Mute'],['إبدال الصوت','SubAud'],['دمج','VMerge']]
-Audio_Options = [['دمج','AMerge'],['تخط الصمت','Silence']] + Trim_Op + Other_Options
+Audio_Options = [['دمج','AMerge'],['تخط الصمت','Silence'],['تضخيم','Amplify']] + Trim_Op + Other_Options
 # Audio_Options = Media_Options  +  [['دمج','AMerge'],['إزالة الصمت','Silence'],['تقطيع','Frag']]
 
 
@@ -178,6 +179,19 @@ def Vid_Mk(Vid,Aud):
   Sub_Cmd = f'{ffmpeg} -i "{Vid}" -i "{Aud}" -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 "{Vid_Res}" -y'
   os.system(Sub_Cmd)
   return Vid_Res
+
+def Media_Amplify(file_path,Rate):
+  Ext = '.' + file_path.split('.')[-1]
+  Mp3_File = file_path.replace(Ext,'_Amplified.mp3')
+  if file_path.lower().endswith(Audio_Forms):
+    Res_File = Mp3_File
+  else: 
+    Res_File = file_path.replace(Ext,f'_Amplified{Ext}')
+  Amplify_Cmd = f'{ffmpeg} -i "{file_path}" -filter:a volume={Rate}dB "{Mp3_File}"'
+  os.system(Amplify_Cmd)
+  if file_path.lower().endswith(Video_Forms):
+    Res_File = Vid_Mk(file_path,Mp3_File)
+  return Res_File
 
 #### Blur bot 
 
@@ -1441,7 +1455,7 @@ def Multi_loop():
                     File_Msg.reply_document(Txt_File)
          
   
-         elif process in ('Crop','Blur','Compress','Marg','Unlock','Renm','Convert','Silence') :
+         elif process in ('Crop','Blur','Compress','Marg','Unlock','Renm','Convert','Silence','Amplify') :
               
               if process == 'Renm':
                Ext = File.split('.')[-1]
@@ -1458,7 +1472,8 @@ def Multi_loop():
                 if File.lower().endswith(Video_Forms): 
                   Blur_File = Blur_Dict[key]
                   Res_File = Raw_Blur(File,int(Rate),Blur_File)
-
+              elif process == 'Amplify' : 
+                Res_File = Media_Amplify(File,Rate)
               elif process == 'Marg' :
                if Pdf_Page_Num(File) < Ex_Pdf_Limit : 
                 Res_File = Pdf_Margin(File)
@@ -1907,8 +1922,11 @@ def callback_query(CLIENT,CallbackQuery):
       replied = file_msg.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons, resize_keyboard=True))
   
   
-  elif Method in ['Blur'] :
+  elif Method in ['Blur','Amplify'] :
     if len(Callback_List) > 2 : 
+        if not Method == 'Blur' :
+          Callback_Add(CallbackQuery)
+        else : 
           if file_msg.video : 
             key = f'{User_Id}_{file_msg.id}'
             callback_dict[key] = CallbackQuery.data.strip()
@@ -1935,6 +1953,8 @@ def callback_query(CLIENT,CallbackQuery):
         CHOOSE_UR_Option = "اختر ما تريد "
         if Method == 'Blur':
           Buttons = Photo_Blur_buttons
+        elif Method == 'Amplify':
+          Buttons = Amplify_Buttons
         for method in Buttons : 
                Text = method[0]
                Data = CallbackQuery.data + '_' + method[1]

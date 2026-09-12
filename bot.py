@@ -1268,7 +1268,7 @@ def Multi_loop():
         reply_msg.edit_text(f"جار العمل  ☕")
       except :
         reply_msg.delete()
-        reply_msg = File_Msg.reply('جار العمل ☕')
+        reply_msg = File_Msg.reply('جار العمل ☕',reply_to_message_id = File_Msg.id)
       if process == 'Det' :
         if File_Msg.audio :
           Size = File_Msg.audio.file_size

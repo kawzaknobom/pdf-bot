@@ -786,16 +786,16 @@ def Upld_File(file,Msg,cap=' ',isogg=False):
     if file != None:
       if file.lower().endswith(Image_forms):
           try : 
-            RMsg = Msg.reply_photo(file)
+            RMsg = Msg.reply_photo(file,reply_to_message_id = Msg.id)
           except : 
             file = Fix_Image_Dim(file)
-            RMsg = Msg.reply_photo(file)
+            RMsg = Msg.reply_photo(file,reply_to_message_id = Msg.id)
       elif file.lower().endswith(Video_Forms):
-        RMsg = Msg.reply_video(file,caption=cap)
+        RMsg = Msg.reply_video(file,caption=cap,reply_to_message_id = Msg.id)
       elif file.lower().endswith(Audio_Forms):
-        RMsg = Msg.reply_audio(file,caption=cap)
+        RMsg = Msg.reply_audio(file,caption=cap,reply_to_message_id = Msg.id)
       else :
-          RMsg = Msg.reply_document(file,caption=cap)
+          RMsg = Msg.reply_document(file,caption=cap,reply_to_message_id = Msg.id)
       return RMsg.id
   except FloodWait as e:
     time.sleep(e.value)
@@ -1829,7 +1829,7 @@ def _telegram_file(client, message):
      CHOOSE_UR_BUTTONS.append([InlineKeyboardButton(option[0],callback_data=option[1]+'_'+str(message.id))])
      
   CHOOSE_UR_BUTTONS = Rmv_Dups(CHOOSE_UR_BUTTONS)
-  message.reply(text = CHOOSE_UR_Option,reply_markup = InlineKeyboardMarkup(CHOOSE_UR_BUTTONS))
+  message.reply(text = CHOOSE_UR_Option,reply_markup = InlineKeyboardMarkup(CHOOSE_UR_BUTTONS),reply_to_message_id = message.id)
  
 #####################################
 
@@ -1919,7 +1919,7 @@ def callback_query(CLIENT,CallbackQuery):
             [KeyboardButton("UpperHalf"), KeyboardButton("LowerHalf")],
             [KeyboardButton("RightThird"), KeyboardButton("LeftThird")],
             [KeyboardButton("UpperThird"), KeyboardButton("LowerThird")]]
-      replied = file_msg.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons, resize_keyboard=True))
+      replied = file_msg.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons, resize_keyboard=True),reply_to_message_id = file_msg.id)
   
   
   elif Method in ['Blur','Amplify'] :
@@ -1935,7 +1935,7 @@ def callback_query(CLIENT,CallbackQuery):
             Buttons = [
                   [KeyboardButton("Ranges"), KeyboardButton("Full Vid")]
               ]
-            replied = file_msg.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons, resize_keyboard=True))
+            replied = file_msg.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons, resize_keyboard=True),reply_to_message_id = file_msg.id)
   
           elif file_msg.document : 
             if file_msg.document.file_name.lower().endswith(Video_Forms) :
@@ -1946,7 +1946,7 @@ def callback_query(CLIENT,CallbackQuery):
               Buttons = [
                   [KeyboardButton("Ranges"), KeyboardButton("Full Vid")]
               ]
-              replied = file_msg.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons, resize_keyboard=True))   
+              replied = file_msg.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons, resize_keyboard=True),reply_to_message_id = file_msg.id)   
 
     else : 
         CHOOSE_UR_BUTTONS = []
@@ -2065,7 +2065,7 @@ def refunc(client,message):
     except : 
       pass
     Quee = MUB_Db.Grap_Values("Tasks","MainQ")
-    replied = file_msg.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")
+    replied = file_msg.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ",reply_to_message_id = int(file_id))
     
     if Callback_D[User_Id]["Renm"] :
 
@@ -2191,7 +2191,7 @@ def _telegram_file(client, message):
             ]
           if message.text == 'Ranges' :
             Buttons += [[KeyboardButton("✔️")]]
-          replied = message.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons,resize_keyboard=True))
+          replied = message.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons,resize_keyboard=True),reply_to_message_id = int(file_id))
           
         
         elif message.text in ['RightHalf','LeftHalf','UpperHalf','LowerHalf','RightThird','LeftThird','UpperThird','LowerThird','RightThirdLeft','LeftThirdLeft','UpperThirdLeft','LowerThirdLeft','FullFrame'] :
@@ -2199,7 +2199,7 @@ def _telegram_file(client, message):
             Blur_Dict[key]['MainBlur'] = message.text
             Item = callback_dict[key]
             Quee = MUB_Db.Grap_Values("Tasks","MainQ") 
-            replied = message.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ",reply_markup=ReplyKeyboardRemove())
+            replied = message.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ",reply_markup=ReplyKeyboardRemove(),reply_to_message_id = int(file_id))
             Item = Item + f'_{replied.id}_{User_Id}'
             Item_add(Item)
             callback_dict.pop(key)
@@ -2215,7 +2215,7 @@ def _telegram_file(client, message):
         elif message.text == '✔️' :
             Item = callback_dict[key]
             Quee = MUB_Db.Grap_Values("Tasks","MainQ") 
-            replied = message.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ",reply_markup=ReplyKeyboardRemove())
+            replied = message.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ",reply_markup=ReplyKeyboardRemove(),reply_to_message_id = int(file_id))
             Item = Item + f'_{replied.id}_{User_Id}'
             Item_add(Item)
             callback_dict.pop(key)
@@ -2224,7 +2224,7 @@ def _telegram_file(client, message):
         Crop_Mode = message.text 
         Item = callback_dict[key]
         Quee = MUB_Db.Grap_Values("Tasks","MainQ") 
-        replied = message.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ",reply_markup=ReplyKeyboardRemove())
+        replied = message.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ",reply_markup=ReplyKeyboardRemove(),reply_to_message_id = int(file_id))
         Item = Item + f'_{Crop_Mode}_{replied.id}_{User_Id}'
         Item_add(Item)
         callback_dict.pop(key)

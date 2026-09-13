@@ -796,7 +796,7 @@ def generate_thumbnail(video_path):
     else:
         middle_sec = 0.0  
 
-    cap.set(cv2.CAP_PROP_POS_MSEC, timestamp_sec * 1000)
+    cap.set(cv2.CAP_PROP_POS_MSEC, middle_sec * 1000)
 
     success, frame = cap.read()
     cap.release()

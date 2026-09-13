@@ -809,7 +809,7 @@ def generate_thumbnail(video_path):
     pil_image.thumbnail((320, 180))
 
     Ext = '.' + video_path.split('.')[-1]
-    output_path = video_path.replace(Ext,'.jpg"')
+    output_path = video_path.replace(Ext,'.jpeg"')
     pil_image.save(output_path, quality=95)
     return output_path
 

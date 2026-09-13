@@ -780,7 +780,39 @@ def Fix_Image_Dim(input_path, max_dimension=1280):
         img.save(output_path, 'JPEG', quality=85)
         os.remove(input_path)
         return output_path
+
+def generate_thumbnail(video_path):
     
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        raise FileNotFoundError(f"Cannot open video file: {video_path}")
+
+    total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+
+    if fps > 0 and total_frames > 0:
+        total_duration_sec = total_frames / fps
+        middle_sec = total_duration_sec / 2.0
+    else:
+        middle_sec = 0.0  
+
+    cap.set(cv2.CAP_PROP_POS_MSEC, timestamp_sec * 1000)
+
+    success, frame = cap.read()
+    cap.release()
+
+    if not success or frame is None:
+        raise RuntimeError("Failed to extract frame from video.")
+
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    pil_image = Image.fromarray(rgb_frame)
+    pil_image.thumbnail((320, 180))
+
+    Ext = '.' + video_path.split('.')[-1]
+    output_path = video_path.replace(Ext,'.jpg"')
+    pil_image.save(output_path, quality=95)
+    return output_path
+
 def Upld_File(file,Msg,cap=' ',isogg=False):
   try:
     if file != None:
@@ -791,7 +823,8 @@ def Upld_File(file,Msg,cap=' ',isogg=False):
             file = Fix_Image_Dim(file)
             RMsg = Msg.reply_photo(file,reply_to_message_id = Msg.id)
       elif file.lower().endswith(Video_Forms):
-        RMsg = Msg.reply_video(file,caption=cap,reply_to_message_id = Msg.id)
+        Thumb = generate_thumbnail(file)
+        RMsg = Msg.reply_video(file,caption=cap,thumb=Thumb,reply_to_message_id = Msg.id)
       elif file.lower().endswith(Audio_Forms):
         RMsg = Msg.reply_audio(file,caption=cap,reply_to_message_id = Msg.id)
       else :

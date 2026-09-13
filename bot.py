@@ -810,7 +810,7 @@ def generate_thumbnail(video_path):
 
     Ext = '.' + video_path.split('.')[-1]
     output_path = video_path.replace(Ext,'.jpeg"')
-    pil_image.save(output_path, quality=95)
+    pil_image.save(output_path,format="JPEG", quality=85,optimize=True)
     return output_path
 
 def Upld_File(file,Msg,cap=' ',isogg=False):

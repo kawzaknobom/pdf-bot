@@ -834,6 +834,7 @@ def Upld_File(file,Msg,cap=' ',isogg=False):
     time.sleep(e.value)
     return Upld_File(file,Msg,cap)
   except Exception as err : 
+        Msg.reply(str(err))
         pass
   
 def Upld_Dir_Func(Extract_Dir,Msg):

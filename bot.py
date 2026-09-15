@@ -335,7 +335,7 @@ def combine_and_sort_stamps(stamps, rest_stamps):
 def Vid_Frag(file_path,fullstamps,isunblur=False): 
     Parts = []
     for stamp in fullstamps : 
-      part = Media_Trim(file_path,stamp)
+      part,cap = Media_Trim(file_path,stamp)
       if isunblur : 
         Parts.append(part)
       else : 
@@ -344,17 +344,11 @@ def Vid_Frag(file_path,fullstamps,isunblur=False):
 
 def Blur_Ranges(file_path,Rate,Blur_File):
   Keys = [k for k, v in Blur_File.items() if not isinstance(v, bool) and v != ""]
-  print(Keys)
   TimeStamps = [v for k, v in Blur_File.items() if isinstance(v, str) and v != ""]  
-  print(TimeStamps)
   stamps = merge_timestamps(TimeStamps)
-  print(stamps)
   rest_stamps = get_unblurred_stamps(file_path,stamps)
-  print(rest_stamps)
   fullstamps = combine_and_sort_stamps(stamps,rest_stamps)
-  print(fullstamps)
   blurParts = Vid_Frag(file_path,stamps)
-  print(blurParts)
   bluredParts = []
   unblurParts = Vid_Frag(file_path,rest_stamps,True)
   for part in blurParts : 
@@ -369,11 +363,8 @@ def Blur_Ranges(file_path,Rate,Blur_File):
          blurfile[key] = shift_range_back(time_val, start) 
     Res_Part = Raw_Blur(part[0],Rate,blurfile)
     bluredParts.append(Res_Part)
-  print(bluredParts)
   stamp_to_file = {**dict(zip(stamps, bluredParts)), **dict(zip(rest_stamps, unblurParts))}
-  print(stamp_to_file)
   fullparts = [stamp_to_file[stamp] for stamp in fullstamps]
-  print(fullparts)
   Ext = '.' + file_path.split('.')[-1]
   mergtxt = file_path.replace(Ext,'.txt')              
   for File_Elm in fullparts :

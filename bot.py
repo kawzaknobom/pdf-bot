@@ -819,8 +819,8 @@ def Get_Msg(bot,Chat_id,msg_id):
     pass
 
 def Vid_Merge(Vid_Txt) :
-  Vid_File = Vid_Txt.replace('.txt','_VMerged.mp4')
-  Vid_Cmd = f'{ffmpeg} -f concat -safe 0 -i "{Vid_Txt}" -c:v libx264 -preset ultrafast -crf 22 -c:a aac "{Vid_File}"'
+  Vid_File = Vid_Txt.replace('.txt','_VMerged.mkv')
+  Vid_Cmd = f'{ffmpeg} -f concat -safe 0 -i "{Vid_Txt}" -c copy "{Vid_File}"'
   os.system(Vid_Cmd)
   return Vid_File
 
@@ -1409,7 +1409,7 @@ def Media_Trim(file_path,Rate):
     Trim_Cmd = f'{ffmpeg} -y -ss {strt_point} -to {end_point} -i "{file_path}" -map 0:a -vn -c copy "{Res_File}"'
     os.system(Trim_Cmd)
   else :
-    Trim_Cmd = f'{ffmpeg} -ss {strt_point} -to {end_point} -i "{file_path}" -c copy -avoid_negative_ts make_zero "{Res_File}" -y'
+    Trim_Cmd = f'{ffmpeg} -ss {strt_point} -to {end_point} -i "{file_path}" -c copy "{Res_File}" -y'
     # Trim_Cmd = f'{ffmpeg} -i "{file_path}" -ss {strt_point} -strict -2 -to {end_point} -c:a aac -codec:v h264 -b:v 1000k "{Res_File}" -y '
     os.system(Trim_Cmd)
     # Res_File = Encode_Vid(Res_File)
@@ -1657,10 +1657,10 @@ def Multi_loop():
                 key = f"{user_id}_{File_Msg.id}"
                 if File.lower().endswith(Video_Forms): 
                   Blur_File = Blur_Dict[key]
-                  if Blur_File['isfull'] : 
-                    Res_File = Raw_Blur(File,int(Rate),Blur_File)
-                  else :
-                    Res_File = Blur_Ranges(File,int(Rate),Blur_File)
+                  Res_File = Raw_Blur(File,int(Rate),Blur_File)
+                  # if Blur_File['isfull'] : 
+                  # else :
+                  #   Res_File = Blur_Ranges(File,int(Rate),Blur_File)
               elif process == 'Amplify' : 
                 Res_File = Media_Amplify(File,Rate)
               elif process == 'Marg' :

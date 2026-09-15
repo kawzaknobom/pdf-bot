@@ -359,7 +359,7 @@ def Blur_Ranges(file_path,Rate,Blur_File):
       time_val = Blur_File[key]
       if isinstance(time_val, tuple):
         time_val = time_val[1]
-      elif isinstance(time_val, str) and time_val != "":
+      if isinstance(time_val, str) and time_val != "":
          blurfile[key] = shift_range_back(time_val, start) 
     Res_Part = Raw_Blur(part[0],Rate,blurfile)
     bluredParts.append(Res_Part)

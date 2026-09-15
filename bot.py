@@ -327,19 +327,9 @@ def get_unblurred_stamps(file_path, merged_blur):
     return unblurred
 
 def combine_and_sort_stamps(stamps, rest_stamps):
-    combined = []
-
-    # Tag blurred stamps as True
-    for stamp in stamps:
-        combined.append((stamp, True))
-
-    # Tag unblurred stamps as False
-    for stamp in rest_stamps:
-        combined.append((stamp, False))
-
-    # Sort chronologically using the start time converted to seconds
-    combined.sort(key=lambda item: time_to_sec(item[0].split('-')[0]))
-
+    combined = stamps + rest_stamps
+    # Sort chronologically by start time in seconds
+    combined.sort(key=lambda stamp: time_to_sec(stamp.split('-')[0]))
     return combined
 
 def Vid_Frag(file_path,fullstamps,isunblur=False): 
@@ -365,8 +355,12 @@ def Blur_Ranges(file_path,Rate,Blur_File):
     blurfile = {'isfull':True,'MainBlur':'','RightHalf':'','LeftHalf':'','UpperHalf':'','LowerHalf':'','RightThird':'','LeftThird':'','UpperThird':'','LowerThird':'','RightThirdLeft':'','LeftThirdLeft':'','UpperThirdLeft':'','LowerThirdLeft':'','FullFrame':'','RightHalfK':False,"LeftHalfK":False,"UpperHalfK":False,"LowerHalfK":False,"RightThirdK":False,"LeftThirdK":False,"UpperThirdK":False,"LowerThirdK":False,"RightThirdLeftK":False,"LeftThirdLeftK":False,"UpperThirdLeftK":False,"LowerThirdLeftK":False,"FullFrameK":False}
     blurfile['isfull'] = False
     start = part[1].split('-')[0]
-    for key in Keys : 
-      blurfile[key] = shift_range_back(Blur_File[key],start)
+    for key in Keys :
+      time_val = Blur_File[key]
+      if isinstance(time_val, tuple):
+        time_val = time_val[1]
+      elif isinstance(time_val, str) and time_val != "":
+         blurfile[key] = shift_range_back(time_val, start) 
     Res_Part = Raw_Blur(part,Rate,blurfile)
     bluredParts.append(Res_Part)
   stamp_to_file = {**dict(zip(stamps, bluredParts)), **dict(zip(rest_stamps, unblurParts))}

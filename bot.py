@@ -361,7 +361,7 @@ def Blur_Ranges(file_path,Rate,Blur_File):
         time_val = time_val[1]
       elif isinstance(time_val, str) and time_val != "":
          blurfile[key] = shift_range_back(time_val, start) 
-    Res_Part = Raw_Blur(part,Rate,blurfile)
+    Res_Part = Raw_Blur(part[0],Rate,blurfile)
     bluredParts.append(Res_Part)
   stamp_to_file = {**dict(zip(stamps, bluredParts)), **dict(zip(rest_stamps, unblurParts))}
   fullparts = [stamp_to_file[stamp] for stamp in fullstamps]

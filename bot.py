@@ -356,7 +356,7 @@ def Blur_Ranges(file_path,Rate,Blur_File):
   Keys = [k for k, v in Blur_File.items() if not isinstance(v, bool) and v != ""]
   TimeStamps = [v for k, v in Blur_File.items() if isinstance(v, str) and v != ""]  
   stamps = merge_timestamps(TimeStamps)
-  rest_stamps = get_unblurred_stamps(stamps)
+  rest_stamps = get_unblurred_stamps(file_path,stamps)
   fullstamps = combine_and_sort_stamps(stamps,rest_stamps)
   blurParts = Vid_Frag(file_path,stamps)
   bluredParts = []

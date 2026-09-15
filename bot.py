@@ -819,8 +819,8 @@ def Get_Msg(bot,Chat_id,msg_id):
     pass
 
 def Vid_Merge(Vid_Txt) :
-  Vid_File = Vid_Txt.replace('.txt','_VMerged.mkv')
-  Vid_Cmd = f'{ffmpeg} -f concat -safe 0 -i "{Vid_Txt}" -c copy "{Vid_File}"'
+  Vid_File = Vid_Txt.replace('.txt','_VMerged.mp4')
+  Vid_Cmd = f'{ffmpeg} -f concat -safe 0 -i "{Vid_Txt}" -c:v libx264 -preset ultrafast -crf 22 -c:a aac "{Vid_File}"'
   os.system(Vid_Cmd)
   return Vid_File
 

@@ -1257,7 +1257,8 @@ def Media_Trim(file_path,Rate):
     Trim_Cmd = f'{ffmpeg} -y -ss {strt_point} -to {end_point} -i "{file_path}" -map 0:a -vn -c copy "{Res_File}"'
     os.system(Trim_Cmd)
   else :
-    Trim_Cmd = f'{ffmpeg} -i "{file_path}" -ss {strt_point} -strict -2 -to {end_point} -c:a aac -codec:v h264 -b:v 1000k "{Res_File}" -y '
+    Trim_Cmd = f'{ffmpeg} -ss {strt_point} -to {end_point} -i "{file_path}" -c copy "{Res_File}" -y'
+    # Trim_Cmd = f'{ffmpeg} -i "{file_path}" -ss {strt_point} -strict -2 -to {end_point} -c:a aac -codec:v h264 -b:v 1000k "{Res_File}" -y '
     os.system(Trim_Cmd)
     Res_File = Encode_Vid(Res_File)
     

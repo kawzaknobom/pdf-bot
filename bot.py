@@ -829,8 +829,8 @@ def Upld_File(file,Msg,cap=' ',isogg=False):
       else : 
         Name = get_name(Msg)
         if Name == 'None' : 
-          Name = file.split("/")[-1].split('.')[0]
-        Name = Name.replace('_',' ')
+          Name = file.split("/")[-1]
+        Name = Name.split('.')[0].replace('_',' ')
         cap = Name + "\n\n" + cap
         if file.lower().endswith(Video_Forms):
           Thumb = generate_thumbnail(file)

@@ -826,13 +826,19 @@ def Upld_File(file,Msg,cap=' ',isogg=False):
           except : 
             file = Fix_Image_Dim(file)
             RMsg = Msg.reply_photo(file,reply_to_message_id = Msg.id)
-      elif file.lower().endswith(Video_Forms):
-        Thumb = generate_thumbnail(file)
-        RMsg = Msg.reply_video(file,caption=cap,thumb=Thumb,reply_to_message_id = Msg.id)
-      elif file.lower().endswith(Audio_Forms):
-        RMsg = Msg.reply_audio(file,caption=cap,reply_to_message_id = Msg.id)
-      else :
-          RMsg = Msg.reply_document(file,caption=cap,reply_to_message_id = Msg.id)
+      else : 
+        Name = get_name(Msg)
+        if Name == 'None' : 
+          Name = file.split("/")[-1].split('.')[0]
+        Name = Name.replace('_',' ')
+        cap = Name + "\n\n" + cap
+        if file.lower().endswith(Video_Forms):
+          Thumb = generate_thumbnail(file)
+          RMsg = Msg.reply_video(file,caption=cap,thumb=Thumb,reply_to_message_id = Msg.id)
+        elif file.lower().endswith(Audio_Forms):
+          RMsg = Msg.reply_audio(file,caption=cap,reply_to_message_id = Msg.id)
+        else :
+            RMsg = Msg.reply_document(file,caption=cap,reply_to_message_id = Msg.id)
       return RMsg.id
   except FloodWait as e:
     time.sleep(e.value)
@@ -1780,16 +1786,19 @@ def command1(bot,message):
 ########################################################################
 ########################################################################
 
+def get_name(message):
+    file_name = getattr(getattr(message, message.media.value, None), "file_name", None) if message.media else None
+    if file_name == None :
+      file_name = 'None'
+    if message.voice :
+      file_name = message.voice.file_unique_id + '.ogg'
+    elif message.video_note : 
+      file_name = message.video_note.file_unique_id + '.mp4'
+    return file_name
+
 @bot.on_message(filters.private & filters.incoming & (filters.photo | filters.audio | filters.voice | filters.video | filters.document ))
 def _telegram_file(client, message):
-  file_name = getattr(getattr(message, message.media.value, None), "file_name", None) if message.media else None
-  if file_name == None :
-    file_name = 'None'
-  if message.voice :
-    file_name = message.voice.file_unique_id + '.ogg'
-  elif message.video_note : 
-    file_name = message.video_note.file_unique_id + '.mp4'
-
+  file_name = get_name(message)
   User_Id = message.from_user.id
   Zip_Key = f'Zip_{User_Id}'
   IMerge_Key = f'IMerge_{User_Id}'

@@ -149,3 +149,9 @@ def Blur_Ranges(file_path,Rate,Blur_File):
     open(mergtxt,'a').write(f"file '{New_File}' \n")
   Res_File = Vid_Merge(mergtxt)
   return Res_File
+
+import langid
+
+async def Detect_Lang(Text) : 
+  lang, confidence = langid.classify(Text)
+  return lang

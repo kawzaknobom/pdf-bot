@@ -679,11 +679,12 @@ def Aud_Merge(Txt_File):
     return Mp3_File
 
 def Send_Text_Res(Media_Msg,Text): 
-  if len(Text) <= 4096 :
+  if len(Text) <= 4069 :
+    Text += "\n\n" + "@Multi_Usage_Sunnay_Bot"
     if len(Text.strip()) != 0 :
         Media_Msg.reply(Text,reply_to_message_id = Media_Msg.id)
   else :
-      textlist = wrap(Text.replace('\n','$'),4096)
+      textlist = wrap(Text.replace('\n','$'),4069)
       for part in textlist:
         if '$' in part : 
           part = part.replace('$','\n')
@@ -812,7 +813,7 @@ def generate_thumbnail(video_path):
     pil_image.save(output_path,format="JPEG", quality=85,optimize=True)
     return output_path
 
-def Upld_File(file,Msg,cap=' ',isogg=False):
+def Upld_File(file,Msg,cap='@Multi_Usage_Sunnay_Bot',isogg=False):
   try:
     if file != None:
       if file.lower().endswith(Image_forms):

@@ -819,7 +819,7 @@ def Upld_File(file,Msg,cap=' ',isogg=False):
       if cap != " " : 
         cap = "@Multi_Usage_Sunnay_Bot"
       else : 
-        cap += "\n\n" + "@Multi_Usage_Sunnay_Bot"
+        cap += ("\n\n" + "@Multi_Usage_Sunnay_Bot")
       if file.lower().endswith(Image_forms):
           try : 
             RMsg = Msg.reply_photo(file,reply_to_message_id = Msg.id)

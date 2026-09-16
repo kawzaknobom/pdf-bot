@@ -816,7 +816,7 @@ def generate_thumbnail(video_path):
 def Upld_File(file,Msg,cap=' ',isogg=False):
   try:
     if file != None:
-      if cap != " " : 
+      if cap == " " : 
         cap = "@Multi_Usage_Sunnay_Bot"
       else : 
         cap += ("\n\n" + "@Multi_Usage_Sunnay_Bot")

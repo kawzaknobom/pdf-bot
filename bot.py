@@ -1537,7 +1537,7 @@ def Multi_loop():
                 Res_File = Media_Skip(File)
               Upld_File(Res_File,File_Msg)
 
-         elif process in ('Renm') : 
+         elif process in ('Renm',) : 
            if process == 'Renm':
               Ext = File.split('.')[-1]
               Res_File = f"{dl_path}{Rate.replace('|',' ')}.{Ext}"

@@ -1542,7 +1542,7 @@ def Multi_loop():
               Res_File = f"{dl_path}{Rate.replace('|',' ')}.{Ext}"
               Cmd = f'mv "{File}" "{Res_File}"'
               os.system(Cmd)
-              Upld_File(Res_File,File_Msg,True)
+              Upld_File(Res_File,File_Msg," ",True)
            
       try :
         reply_msg.edit_text('تمت  ☑️')

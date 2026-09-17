@@ -809,7 +809,7 @@ def generate_thumbnail(video_path):
     pil_image.save(output_path,format="JPEG", quality=85,optimize=True)
     return output_path
 
-def Upld_File(file,Msg,cap=' ',isogg=False):
+def Upld_File(file,Msg,cap=' ',isRenm=False):
   try:
     if file != None:
       if cap == " " : 
@@ -824,7 +824,7 @@ def Upld_File(file,Msg,cap=' ',isogg=False):
             RMsg = Msg.reply_photo(file,caption=cap,reply_to_message_id = Msg.id)
       else : 
         Name = get_name(Msg)
-        if Name == 'None' : 
+        if Name == 'None' or isRenm : 
           Name = file.split("/")[-1]
         Name = Name.split('.')[0].replace('_',' ')
         cap = Name + "\n\n" + cap
@@ -1499,15 +1499,9 @@ def Multi_loop():
                     File_Msg.reply_document(Txt_File)
          
   
-         elif process in ('Crop','Blur','Compress','Marg','Unlock','Renm','Convert','Silence','Amplify') :
+         elif process in ('Crop','Blur','Compress','Marg','Unlock','Convert','Silence','Amplify') :
               
-              if process == 'Renm':
-               Ext = File.split('.')[-1]
-               Res_File = f"{dl_path}{Rate.replace('|',' ')}.{Ext}"
-               Cmd = f'mv "{File}" "{Res_File}"'
-               os.system(Cmd)
-
-              elif process == 'Crop' :
+              if process == 'Crop' :
                   Crop_Mode = Rate
                   Res_File = Crop_Vid(File,Crop_Mode)
               
@@ -1542,6 +1536,15 @@ def Multi_loop():
               elif process == 'Silence' :
                 Res_File = Media_Skip(File)
               Upld_File(Res_File,File_Msg)
+
+         elif process in ('Renm') : 
+           if process == 'Renm':
+              Ext = File.split('.')[-1]
+              Res_File = f"{dl_path}{Rate.replace('|',' ')}.{Ext}"
+              Cmd = f'mv "{File}" "{Res_File}"'
+              os.system(Cmd)
+              Upld_File(Res_File,File_Msg,True)
+           
       try :
         reply_msg.edit_text('تمت  ☑️')
       except :

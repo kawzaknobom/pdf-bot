@@ -818,10 +818,10 @@ def Upld_File(file,Msg,cap=' ',isogg=False):
         cap += ("\n\n" + "@Multi_Usage_Sunnay_Bot")
       if file.lower().endswith(Image_forms):
           try : 
-            RMsg = Msg.reply_photo(file,reply_to_message_id = Msg.id)
+            RMsg = Msg.reply_photo(file,caption=cap,reply_to_message_id = Msg.id)
           except : 
             file = Fix_Image_Dim(file)
-            RMsg = Msg.reply_photo(file,reply_to_message_id = Msg.id)
+            RMsg = Msg.reply_photo(file,caption=cap,reply_to_message_id = Msg.id)
       else : 
         Name = get_name(Msg)
         if Name == 'None' : 

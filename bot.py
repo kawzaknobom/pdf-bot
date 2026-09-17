@@ -830,10 +830,14 @@ def Upld_File(file,Msg,cap=' ',isogg=False):
         cap = Name + "\n\n" + cap
         if file.lower().endswith(Video_Forms):
           Thumb = generate_thumbnail(file)
-          RMsg = Msg.reply_video(file,caption=cap,thumb=Thumb,reply_to_message_id = Msg.id)
+          RMsg = Msg.reply_video(file,caption="🎥 "+cap,thumb=Thumb,reply_to_message_id = Msg.id)
         elif file.lower().endswith(Audio_Forms):
-          RMsg = Msg.reply_audio(file,caption=cap,reply_to_message_id = Msg.id)
+          RMsg = Msg.reply_audio(file,caption="🎙️ "+cap,reply_to_message_id = Msg.id)
         else :
+            if file.lower().endswith(("pdf","epub")):
+              cap = "📙 " + cap
+            else : 
+              cap = "📁 " + cap
             RMsg = Msg.reply_document(file,caption=cap,reply_to_message_id = Msg.id)
       return RMsg.id
   except FloodWait as e:

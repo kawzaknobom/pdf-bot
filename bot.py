@@ -1345,7 +1345,7 @@ def Multi_loop():
               else : 
                 Merge_Mode = Merge_Images_UP
               Res_File = reduce(Merge_Mode,Process_List)
-              File_Msg.reply_document(Res_File)
+              File_Msg.reply_document(Res_File,caption="@Multi_Usage_Sunnay_Bot")
             else :
               File_Msg.reply('غير مسموح بأكثر من عشر صور ')
             
@@ -2009,7 +2009,7 @@ def callback_query(CLIENT,CallbackQuery):
          lang = Callback_List[-2]
          accent = Callback_List[-1]
          target_prefix = f"{lang}-{accent}-"
-         voice_names = [voice.split("-")[-1] for voice in male_shortnames if voice.startswith(target_prefix)]
+         voice_names = sorted([voice.split("-")[-1] for voice in male_shortnames if voice.startswith(target_prefix)])
          CHOOSE_UR_Mod = f"اختر المؤدي"
          LANGS_BUTTONS = []
          for Mod in voice_names :
@@ -2040,7 +2040,7 @@ def callback_query(CLIENT,CallbackQuery):
          Rom_Num += 1 
        CHOOSE_UR_Mod = f"اختر {word} "
        LANGS_BUTTONS = []
-       for Mod in Lang_Mods :
+       for Mod in sorted(Lang_Mods) :
           j =  Mod[1] if Method == 'Trans' else Mod
           k = Mod[0] if Method == 'Trans' else Mod
           Data = f"{CallbackQuery.data}_{j}"

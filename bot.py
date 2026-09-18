@@ -1870,6 +1870,7 @@ def _telegram_file(client, message):
 def callback_query(CLIENT,CallbackQuery):
   User_Id = CallbackQuery.from_user.id
   Quee = MUB_Db.Grap_Values("Tasks","MainQ")
+  print(CallbackQuery.data)
   Callback_List = CallbackQuery.data.split('_')
   Method = Callback_List[0]
   Msg_Id = Callback_List[1]
@@ -1996,7 +1997,7 @@ def callback_query(CLIENT,CallbackQuery):
             
 
   elif Method in ['Trans','TTS']:
-
+      
       if len(Callback_List) == 5 :
         if Method == "TTS" :
           Callback_Add(CallbackQuery)

@@ -2040,7 +2040,8 @@ def callback_query(CLIENT,CallbackQuery):
          Rom_Num += 1 
        CHOOSE_UR_Mod = f"اختر {word} "
        LANGS_BUTTONS = []
-       for Mod in sorted(Lang_Mods) :
+       Lang_Mods = sorted(Lang_Mods)
+       for Mod in Lang_Mods :
           j =  Mod[1] if Method == 'Trans' else Mod
           k = Mod[0] if Method == 'Trans' else Mod
           Data = f"{CallbackQuery.data}_{j}"

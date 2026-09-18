@@ -1493,10 +1493,10 @@ def Multi_loop():
                 Send_Text_Res(File_Msg,open(Txt_File,'r').read())
               else :
                 if process == 'Ocr' :
-                  File_Msg.reply_document(Txt_File)
+                  Upld_File(Txt_File,File_Msg)
                 elif process == 'Trans' :
                   if Trans_Model == 'GTrans':
-                    File_Msg.reply_document(Txt_File)
+                    Upld_File(Txt_File,File_Msg)
          
   
          elif process in ('Crop','Blur','Compress','Marg','Unlock','Convert','Silence','Amplify') :

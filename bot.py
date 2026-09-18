@@ -1870,7 +1870,6 @@ def _telegram_file(client, message):
 def callback_query(CLIENT,CallbackQuery):
   User_Id = CallbackQuery.from_user.id
   Quee = MUB_Db.Grap_Values("Tasks","MainQ")
-  print(CallbackQuery.data)
   Callback_List = CallbackQuery.data.split('_')
   Method = Callback_List[0]
   Msg_Id = Callback_List[1]
@@ -2052,6 +2051,22 @@ def callback_query(CLIENT,CallbackQuery):
             LANGS_BUTTONS.append([InlineKeyboardButton(k,callback_data=Data)])
        CallbackQuery.edit_message_text(text = CHOOSE_UR_Mod,reply_markup = InlineKeyboardMarkup(LANGS_BUTTONS))
 
+      elif len(Callback_List) == 2 :
+        if Method == 'Trans' :
+            process = 'الترجمة'
+            langs = g_langs
+            Text = f"اختر اللغة المراد {process} إليها"
+            Buttons = []
+            for lang in langs : 
+              Rom_Num = int(len(langs)/3)
+              lang_sym = lang.split('|')[-1].strip() if Method == 'Trans' else lang
+              Data = f"{Method}_{Msg_Id}_{lang_sym}"
+              key = lang.split('|')[0] if Method == 'Trans' else lang 
+              if langs.index(lang) > Rom_Num-1 :
+                Buttons[langs.index(lang)%Rom_Num].append(InlineKeyboardButton(key,callback_data=Data))
+              else : 
+                Buttons.append([InlineKeyboardButton(key,callback_data=Data)])
+            CallbackQuery.edit_message_text(text = Text,reply_markup = InlineKeyboardMarkup(Buttons))
     
   elif Method in ('Trim','Renm'):
    bot.delete_messages(User_Id,CallbackQuery.message.id)

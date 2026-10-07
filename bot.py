@@ -1323,7 +1323,7 @@ def Multi_loop():
         elif File_Msg.document :
           Size = File_Msg.document.file_size
         Details =  f"اسم الملف : \n {File_Name} \n حجم الملف : \n {round(int(Size)/(1024*1024),2)} ميغا بايت  "
-        reply_msg.reply(Details)
+        reply_msg.reply(Details,reply_to_message_id = File_Msg.id)
         
       elif process in ['PMerge','IMerge','PMake','Zip','TMerge','ToArch','VMerge','AMerge'] : 
         

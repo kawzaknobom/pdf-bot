@@ -155,3 +155,117 @@ import langid
 async def Detect_Lang(Text) : 
   lang, confidence = langid.classify(Text)
   return lang
+
+
+# def Gemini_Trans(Text,lang_sy='ar',Req_Count=0,Api_Index=0):
+#   Gemini_Apis = Apis
+#   client = genai.Client(api_key=Gemini_Apis[Api_Index])
+#   F_L = Grap_Lang(lang_sy)
+#   Translate_Prompt = f"""
+# ترجم هذا النص بأكمله بدقة إلى {F_L}  👇
+  
+#   """ + Text
+#   try : 
+#     response = client.models.generate_content(model=Gemini_Model, contents=Translate_Prompt)
+#     Req_Count += 1
+#     Res = Rmv_Trans(response.text)
+#     Res = Res + Tr_linebreak + Text + Tr_linebreak
+#     return Res,Req_Count
+#   except Exception as err : 
+#     if 'retry' in str(err):
+#          splitted = str(err).split('retry')[1][3:]
+#          seconds = int(splitted.split('.')[0])
+#          time.sleep(seconds)
+#     Req_Count+=1
+#     New_Index = Api_Index+1 
+#     if New_Index < len(Gemini_Apis):
+#       if Req_Count%15 == 0 :
+#           time.sleep(60)
+#       return Gemini_Trans(Text,lang_sy,Req_Count,New_Index)
+#     else :
+#       return 'ERROR',Req_Count
+    
+# def Gemini_Trans_Txt(Msg,TxtFile,lang_sy='ar'):
+#   Txt_File = TxtFile.replace('.txt','_Translated.txt')
+#   Check_File(Txt_File)
+#   Text = open(TxtFile,'r').read()
+#   Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,0,10000)
+#   return Txt_File
+  
+# def Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,Req_Count=0,Limit=20000):
+#   rest = ''
+#   with open(Txt_File,'a') as f : 
+#     if len(Text) > Limit : 
+#       Textlist = Wrap_Text(Text,Limit)
+#       for Num,part in enumerate(Textlist) : 
+#         if len(rest.strip()) != 0 :
+#           part = rest + part
+#         if Num != len(Textlist)-1 : 
+#           if '.' in part :
+#             rest = part.split('.')[-1].strip()
+#             part = part[:-len(rest)-1]
+#           elif '\n' in part :
+#             rest = part.split('\n')[-1].strip()
+#             part = part[:-len(rest)-1]
+#         Txt_Part = TxtFile.replace(' ','_').replace('.txt',f'_P0000{Num}.txt')
+#         open(Txt_Part,'a').write(part)
+#         Res_Text,Req_Count = Gemini_BTxt(Txt_Part,Req_Count,lang_sy)
+#         if Res_Text == 'ERROR' :
+#           Res_Text,Req_Count = Gemini_Trans(part,lang_sy,Req_Count)
+#         if Res_Text == 'ERROR' :
+#           New_Limit = Limit-1000
+#           if New_Limit > 0 :
+#             return Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,Req_Count,New_Limit)
+#           else : 
+#            Rest_File = TxtFile.replace('.txt','_Res.txt')
+#            with open(Rest_File,'a') as Rf : 
+#              for sec in Textlist[Num:]:
+#                Rf.write(sec)
+#            Msg.reply_document(Txt_File)
+#            Msg.reply_document(Rest_File)
+#            Msg.reply('انتهت توكنات اليوم 🌿')
+#            break
+#         f.write(Res_Text)
+#       Msg.reply_document(Txt_File)
+#     else : 
+#       Res_Text,Req_Count = Gemini_BTxt(TxtFile,Req_Count,lang_sy)
+#       if Res_Text == 'ERROR' :
+#         Res_Text,Req_Count = Gemini_Trans(Text,lang_sy,Req_Count)
+#       if Res_Text == 'ERROR' :
+#           New_Limit = Limit-1000
+#           if New_Limit != 0 :
+#             return Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,Req_Count,New_Limit)
+#           else : 
+#            Msg.reply('انتهت توكنات اليوم 🌿')
+#       f.write(Res_Text)
+      
+
+# def Gemini_BTxt(TxtFile,Req_Count,lang_sy='ar',Api_Index=0) : 
+#   Gemini_Apis = Apis
+#   client = genai.Client(api_key=Gemini_Apis[Api_Index])
+#   F_L = Grap_Lang(lang_sy)
+#   Translate_Prompt = f"""
+# ترجم هذا الملف النصي بأكمله بدقة إلى {F_L}  👇
+  
+#   """ 
+#   try : 
+#     file = client.files.upload(file=TxtFile)
+#     response = client.models.generate_content(model=Gemini_Model, contents=[Translate_Prompt, file])
+#     Res = Rmv_Trans(response.text)
+#     Res = Res + Tr_linebreak + open(TxtFile,'r').read() + Tr_linebreak
+#     Req_Count += 1
+#     return Res,Req_Count
+#   except Exception as err : 
+#     if 'retry' in str(err):
+#        splitted = str(err).split('retry')[1][3:]
+#        seconds = int(splitted.split('.')[0])
+#        time.sleep(seconds)
+#     Req_Count+=1
+#     New_Index = Api_Index+1 
+#     if New_Index < len(Gemini_Apis):
+#       if Req_Count%15 == 0 :
+#         time.sleep(60)
+#       return Gemini_BTxt(TxtFile,Req_Count,lang_sy,New_Index)
+#     else :
+#       return 'ERROR',Req_Count
+#       #raise ValueError('انتهت توكنات اليوم 🌿')

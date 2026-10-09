@@ -473,48 +473,23 @@ def Grap_Lang(Sym):
 
 Gemini_Model = 'gemini-2.5-flash-lite'
 
-
-def Gemini_Trans(Text,lang_sy='ar',Req_Count=0,Api_Index=0):
-  Gemini_Apis = Apis
-  client = genai.Client(api_key=Gemini_Apis[Api_Index])
-  F_L = Grap_Lang(lang_sy)
-  Translate_Prompt = f"""
-ترجم هذا النص بأكمله بدقة إلى {F_L}  👇
-  
-  """ + Text
-  try : 
-    response = client.models.generate_content(model=Gemini_Model, contents=Translate_Prompt)
-    Req_Count += 1
-    Res = Rmv_Trans(response.text)
-    Res = Res + Tr_linebreak + Text + Tr_linebreak
-    return Res,Req_Count
-  except Exception as err : 
-    if 'retry' in str(err):
-         splitted = str(err).split('retry')[1][3:]
-         seconds = int(splitted.split('.')[0])
-         time.sleep(seconds)
-    Req_Count+=1
-    New_Index = Api_Index+1 
-    if New_Index < len(Gemini_Apis):
-      if Req_Count%15 == 0 :
-          time.sleep(60)
-      return Gemini_Trans(Text,lang_sy,Req_Count,New_Index)
-    else :
-      return 'ERROR',Req_Count
     
 def Gemini_Trans_Txt(Msg,TxtFile,lang_sy='ar'):
   Txt_File = TxtFile.replace('.txt','_Translated.txt')
   Check_File(Txt_File)
   Text = open(TxtFile,'r').read()
   Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,0,10000)
-  return Txt_File
   
 def Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,Req_Count=0,Limit=20000):
   rest = ''
   with open(Txt_File,'a') as f : 
     if len(Text) > Limit : 
       Textlist = Wrap_Text(Text,Limit)
+      rep = f"عدد الأجزاء ( 0 | {len(Textlist)} )"
+      Msg_Reply = Msg.reply(rep)
       for Num,part in enumerate(Textlist) : 
+        rep = f"عدد الأجزاء ( {Num+1} | {len(Textlist)} )"
+        Msg_Reply.edit_text(rep)
         if len(rest.strip()) != 0 :
           part = rest + part
         if Num != len(Textlist)-1 : 
@@ -587,6 +562,34 @@ def Gemini_BTxt(TxtFile,Req_Count,lang_sy='ar',Api_Index=0) :
       return 'ERROR',Req_Count
       #raise ValueError('انتهت توكنات اليوم 🌿')
 
+
+def Gemini_Trans(Text,lang_sy='ar',Req_Count=0,Api_Index=0):
+  Gemini_Apis = Apis
+  client = genai.Client(api_key=Gemini_Apis[Api_Index])
+  F_L = Grap_Lang(lang_sy)
+  Translate_Prompt = f"""
+ترجم هذا النص بأكمله بدقة إلى {F_L}  👇
+  
+  """ + Text
+  try : 
+    response = client.models.generate_content(model=Gemini_Model, contents=Translate_Prompt)
+    Req_Count += 1
+    Res = Rmv_Trans(response.text)
+    Res = Res + Tr_linebreak + Text + Tr_linebreak
+    return Res,Req_Count
+  except Exception as err : 
+    if 'retry' in str(err):
+         splitted = str(err).split('retry')[1][3:]
+         seconds = int(splitted.split('.')[0])
+         time.sleep(seconds)
+    Req_Count+=1
+    New_Index = Api_Index+1 
+    if New_Index < len(Gemini_Apis):
+      if Req_Count%15 == 0 :
+         time.sleep(60)
+      return Gemini_Trans(Text,lang_sy,Req_Count,New_Index)
+    else :
+      return 'ERROR',Req_Count
     
 def Google_CTxt(TxtFile,Txt_File,Text,lang_sy,Req_Count=0,Limit=20000):
   loop = asyncio.get_event_loop()

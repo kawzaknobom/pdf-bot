@@ -513,12 +513,12 @@ def Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,Req_Count=0,Limit=20000):
            with open(Rest_File,'a') as Rf : 
              for sec in Textlist[Num:]:
                Rf.write(sec)
-           Msg.reply_document(Txt_File)
-           Msg.reply_document(Rest_File)
+           Upld_File(Txt_File,Msg)
+           Upld_File(Rest_File,Msg)
            Msg.reply('انتهت توكنات اليوم 🌿')
-           break
+           return
+        print(Res_Text)
         f.write(Res_Text)
-      Msg.reply_document(Txt_File)
     else : 
       Res_Text,Req_Count = Gemini_BTxt(TxtFile,Req_Count,lang_sy)
       if Res_Text == 'ERROR' :
@@ -529,7 +529,9 @@ def Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,Req_Count=0,Limit=20000):
             return Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,Req_Count,New_Limit)
           else : 
            Msg.reply('انتهت توكنات اليوم 🌿')
+           return
       f.write(Res_Text)
+    Upld_File(Txt_File,Msg)
       
 
 def Gemini_BTxt(TxtFile,Req_Count,lang_sy='ar',Api_Index=0) : 

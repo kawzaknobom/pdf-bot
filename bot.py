@@ -480,58 +480,75 @@ def Gemini_Trans_Txt(Msg,TxtFile,lang_sy='ar'):
   Text = open(TxtFile,'r').read()
   Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,0,10000)
   
-def Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,Req_Count=0,Limit=20000):
-  rest = ''
-  with open(Txt_File,'a') as f : 
-    if len(Text) > Limit : 
-      Textlist = Wrap_Text(Text,Limit)
-      rep = f"عدد الأجزاء ( 0 | {len(Textlist)} )"
-      Msg_Reply = Msg.reply(rep)
-      for Num,part in enumerate(Textlist) : 
-        rep = f"عدد الأجزاء ( {Num+1} | {len(Textlist)} )"
-        Msg_Reply.edit_text(rep)
-        if len(rest.strip()) != 0 :
-          part = rest + part
-        if Num != len(Textlist)-1 : 
-          if '.' in part :
-            rest = part.split('.')[-1].strip()
-            part = part[:-len(rest)-1]
-          elif '\n' in part :
-            rest = part.split('\n')[-1].strip()
-            part = part[:-len(rest)-1]
-        Txt_Part = TxtFile.replace(' ','_').replace('.txt',f'_P0000{Num}.txt')
-        open(Txt_Part,'a').write(part)
-        Res_Text,Req_Count = Gemini_BTxt(Txt_Part,Req_Count,lang_sy)
-        if Res_Text == 'ERROR' :
-          Res_Text,Req_Count = Gemini_Trans(part,lang_sy,Req_Count)
-        if Res_Text == 'ERROR' :
-          New_Limit = Limit-1000
-          if New_Limit > 0 :
-            return Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,Req_Count,New_Limit)
-          else : 
-           Rest_File = TxtFile.replace('.txt','_Res.txt')
-           with open(Rest_File,'a') as Rf : 
-             for sec in Textlist[Num:]:
-               Rf.write(sec)
-           Upld_File(Txt_File,Msg)
-           Upld_File(Rest_File,Msg)
-           Msg.reply('انتهت توكنات اليوم 🌿')
-           return
-        print(Res_Text)
-        f.write(Res_Text)
-    else : 
-      Res_Text,Req_Count = Gemini_BTxt(TxtFile,Req_Count,lang_sy)
-      if Res_Text == 'ERROR' :
-        Res_Text,Req_Count = Gemini_Trans(Text,lang_sy,Req_Count)
-      if Res_Text == 'ERROR' :
-          New_Limit = Limit-1000
-          if New_Limit != 0 :
-            return Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,Req_Count,New_Limit)
-          else : 
-           Msg.reply('انتهت توكنات اليوم 🌿')
-           return
-      f.write(Res_Text)
-    Upld_File(Txt_File,Msg)
+def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000):
+    rest = ''
+    
+    if len(Text) > Limit:
+        Textlist = Wrap_Text(Text, Limit)
+        rep = f"عدد الأجزاء ( 0 | {len(Textlist)} )"
+        Msg_Reply = Msg.reply(rep)
+        
+        # فتح الملف مرة واحدة للكتابة وتحديثه
+        with open(Txt_File, 'a', encoding='utf-8') as f:
+            for Num, part in enumerate(Textlist):
+                rep = f"عدد الأجزاء ( {Num+1} | {len(Textlist)} )"
+                Msg_Reply.edit_text(rep)
+                
+                if len(rest.strip()) != 0:
+                    part = rest + part
+                if Num != len(Textlist) - 1:
+                    if '.' in part:
+                        rest = part.split('.')[-1].strip()
+                        part = part[:-len(rest)-1]
+                    elif '\n' in part:
+                        rest = part.split('\n')[-1].strip()
+                        part = part[:-len(rest)-1]
+                        
+                Txt_Part = TxtFile.replace(' ', '_').replace('.txt', f'_P0000{Num}.txt')
+                
+                with open(Txt_Part, 'w', encoding='utf-8') as tp:
+                    tp.write(part)
+                    
+                Res_Text, Req_Count = Gemini_BTxt(Txt_Part, Req_Count, lang_sy)
+                if Res_Text == 'ERROR':
+                    Res_Text, Req_Count = Gemini_Trans(part, lang_sy, Req_Count)
+                    
+                if Res_Text == 'ERROR':
+                    New_Limit = Limit - 1000
+                    if New_Limit > 0:
+                        return Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count, New_Limit)
+                    else:
+                        Rest_File = TxtFile.replace('.txt', '_Res.txt')
+                        with open(Rest_File, 'w', encoding='utf-8') as Rf:
+                            for sec in Textlist[Num:]:
+                                Rf.write(sec)
+                        Upld_File(Txt_File, Msg)
+                        Upld_File(Rest_File, Msg)
+                        Msg.reply('انتهت توكنات اليوم 🌿')
+                        return
+                        
+                f.write(Res_Text + '\n')
+                f.flush() # ضمان حفظ البيانات في الملف فوراً
+                
+        # رفع الملف بعد الانتهاء وتأكيد إغلاقه تماماً
+        Upld_File(Txt_File, Msg)
+        
+    else:
+        Res_Text, Req_Count = Gemini_BTxt(TxtFile, Req_Count, lang_sy)
+        if Res_Text == 'ERROR':
+            Res_Text, Req_Count = Gemini_Trans(Text, lang_sy, Req_Count)
+        if Res_Text == 'ERROR':
+            New_Limit = Limit - 1000
+            if New_Limit != 0:
+                return Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count, New_Limit)
+            else:
+                Msg.reply('انتهت توكنات اليوم 🌿')
+                return
+                
+        with open(Txt_File, 'w', encoding='utf-8') as f:
+            f.write(Res_Text)
+            
+        Upld_File(Txt_File, Msg)
       
 
 def Gemini_BTxt(TxtFile,Req_Count,lang_sy='ar',Api_Index=0) : 
@@ -592,7 +609,7 @@ def Gemini_Trans(Text,lang_sy='ar',Req_Count=0,Api_Index=0):
       return Gemini_Trans(Text,lang_sy,Req_Count,New_Index)
     else :
       return 'ERROR',Req_Count
-    
+
 def Google_CTxt(TxtFile,Txt_File,Text,lang_sy,Req_Count=0,Limit=20000):
   loop = asyncio.get_event_loop()
   rest = ''
@@ -2071,7 +2088,10 @@ def callback_query(CLIENT,CallbackQuery):
                 Buttons[langs.index(lang)%Rom_Num].append(InlineKeyboardButton(key,callback_data=Data))
               else : 
                 Buttons.append([InlineKeyboardButton(key,callback_data=Data)])
-            CallbackQuery.edit_message_text(text = Text,reply_markup = InlineKeyboardMarkup(Buttons))
+            try : 
+              CallbackQuery.edit_message_text(text = Text,reply_markup = InlineKeyboardMarkup(Buttons))
+            except : 
+              pass
     
   elif Method in ('Trim','Renm'):
    bot.delete_messages(User_Id,CallbackQuery.message.id)

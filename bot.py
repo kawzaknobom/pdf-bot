@@ -1511,6 +1511,7 @@ def Multi_loop():
                 elif Trans_Model == 'Gemini' : 
                   Txt_File = Gemini_Trans_Txt(File_Msg,Txt_File,Rate)
 
+              print(File)
               if File.lower().endswith(Image_forms):
                 Send_Text_Res(File_Msg,open(Txt_File,'r').read())
               else :

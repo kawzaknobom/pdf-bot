@@ -479,6 +479,7 @@ def Gemini_Trans_Txt(Msg,TxtFile,lang_sy='ar'):
   Check_File(Txt_File)
   Text = open(TxtFile,'r').read()
   Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,0,10000)
+  return Txt_File
   
 def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000):
     rest = ''
@@ -1473,7 +1474,7 @@ def Multi_loop():
                 if process == "Trans" : 
                   if Trans_Model == 'GTrans' : 
                       Txt_File = Google_Trans_Txt(Txt_File,Rate)
-                      File_Msg.reply_document(Txt_File)
+                      Upld_File(Txt_File,File_Msg)
                   elif Trans_Model == 'Gemini' : 
                     Txt_File = Gemini_Trans_Txt(File_Msg,Txt_File,Rate)
                   Send_Text_Res(File_Msg,open(Txt_File,'r').read())
@@ -1486,8 +1487,8 @@ def Multi_loop():
                   Res_File = asyncio.run(tts_ai(Text,Voice))
                   Upld_File(Res_File,File_Msg)
 
-
                 del Merge_Quee[Key]
+   
             else : 
 
               if File.lower().endswith('txt'):
@@ -1511,7 +1512,6 @@ def Multi_loop():
                 elif Trans_Model == 'Gemini' : 
                   Txt_File = Gemini_Trans_Txt(File_Msg,Txt_File,Rate)
 
-              print(File)
               if File.lower().endswith(Image_forms):
                 Send_Text_Res(File_Msg,open(Txt_File,'r').read())
               else :

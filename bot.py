@@ -551,6 +551,45 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
             
         Upld_File(Txt_File, Msg)
       
+def parse_retry_seconds(err_str):
+    """Parses either a pure second count (digits) or a time string (1h13m40, 05:20, etc.) into total seconds."""
+    try:
+        # Extract the portion after 'retry'
+        if 'retry' in err_str:
+            time_str = err_str.split('retry')[1].strip().split()[0].replace('"', '').replace("'", "")
+        else:
+            time_str = err_str.strip()
+
+        # Case 1: Pure digits (e.g., "45" or "300")
+        if time_str.isdigit():
+            return int(time_str)
+
+        # Case 2: Clock format with colons (e.g., "01:13:40" or "13:40")
+        if ':' in time_str:
+            parts = list(map(float, time_str.split(':')))
+            if len(parts) == 3:
+                return int((parts[0] * 3600) + (parts[1] * 60) + parts[2])
+            elif len(parts) == 2:
+                return int((parts[0] * 60) + parts[1])
+
+        # Case 3: Letter-based format (e.g., "1h13m40s" or "1h13m40")
+        hours = re.search(r'(\d+)\s*h', time_str, re.IGNORECASE)
+        minutes = re.search(r'(\d+)\s*m', time_str, re.IGNORECASE)
+        seconds = re.search(r'(\d+)\s*s?', time_str, re.IGNORECASE)
+
+        total = 0
+        if hours: total += int(hours.group(1)) * 3600
+        if minutes: total += int(minutes.group(1)) * 60
+        if seconds: total += int(seconds.group(1))
+
+        if total > 0:
+            return total
+            
+    except Exception:
+        pass
+        
+    # Default fallback if parsing fails completely
+    return 60
 
 def Gemini_BTxt(TxtFile,Req_Count,lang_sy='ar',Api_Index=0) : 
   Gemini_Apis = Apis
@@ -568,9 +607,9 @@ def Gemini_BTxt(TxtFile,Req_Count,lang_sy='ar',Api_Index=0) :
     Req_Count += 1
     return Res,Req_Count
   except Exception as err : 
-    if 'retry' in str(err):
-       splitted = str(err).split('retry')[1][3:]
-       seconds = int(splitted.split('.')[0])
+    err_str = str(err)
+    if 'retry' in err_str:
+       seconds = parse_retry_seconds(err_str)
        time.sleep(seconds)
     Req_Count+=1
     New_Index = Api_Index+1 
@@ -1574,7 +1613,7 @@ def Multi_loop():
       Check_Dir(dl_path)
    except Exception as err :
        try : 
-        reply_msg.edit_text(err)
+        reply_msg.edit_text(str(err))
        except : 
          pass
 

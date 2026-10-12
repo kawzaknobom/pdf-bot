@@ -6,7 +6,7 @@ except RuntimeError:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     
-from pyrogram.types import InlineKeyboardMarkup , InlineKeyboardButton , CallbackQuery , ForceReply,Message,ReplyKeyboardMarkup, KeyboardButton,ReplyKeyboardRemove,BotCommand
+from pyrogram.types import InlineKeyboardMarkup , InlineKeyboardButton , CallbackQuery , ForceReply,Message,ReplyKeyboardMarkup, KeyboardButton,ReplyKeyboardRemove,BotCommand,InputMediaDocument
 from pyrogram import Client, filters,StopTransmission,idle
 from pyrogram.errors import FloodWait
 from pyrogram.enums import MessageEntityType
@@ -487,13 +487,13 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
     if len(Text) > Limit:
         Textlist = Wrap_Text(Text, Limit)
         rep = f"عدد الأجزاء ( 0 | {len(Textlist)} )"
-        Msg_Reply = Msg.reply(rep)
+        with open(Txt_File, "a") as f: 
+          pass
+        Msg_Reply = Msg.reply_document(Txt_File,cap=rep)
         
         # فتح الملف مرة واحدة للكتابة وتحديثه
         with open(Txt_File, 'a', encoding='utf-8') as f:
             for Num, part in enumerate(Textlist):
-                rep = f"عدد الأجزاء ( {Num+1} | {len(Textlist)} )"
-                Msg_Reply.edit_text(rep)
                 
                 if len(rest.strip()) != 0:
                     part = rest + part
@@ -530,8 +530,11 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
                         
                 f.write(Res_Text + '\n')
                 f.flush() # ضمان حفظ البيانات في الملف فوراً
-                
+                rep = f"عدد الأجزاء ( {Num+1} | {len(Textlist)} )"
+                Msg_Reply.edit_media(media=InputMediaDocument(Txt_File, caption=rep))
+
         # رفع الملف بعد الانتهاء وتأكيد إغلاقه تماماً
+        Msg_Reply.delete()
         Upld_File(Txt_File, Msg)
         
     else:

@@ -1451,7 +1451,7 @@ def Multi_loop():
       else :
        Rate = msg_list[2]
        if not (File_Msg.photo or File_Msg.text or File_Msg.video or File_Msg.audio or File_Msg.voice or (File_Msg.document and not File_Msg.document.file_name.lower().endswith(('pdf'))) or (File_Msg.document and File_Msg.document.file_name.lower().endswith(('pdf')) and int(int(File_Msg.document.file_size)/(1024*1024)) <= 500 )) :
-        File_Msg.reply(f'حد الملف {Ex_Pdf_Limit} ميغا')
+        File_Msg.reply(f'حد الملف {Ex_Pdf_Limit} ميغا',reply_to_message_id = msg.id)
        else : 
          if not File_Msg.text :
           File = File_Dl(File_Msg,dl_path)
@@ -1532,36 +1532,53 @@ def Multi_loop():
                 del Merge_Quee[Key]
    
             else : 
-
-              if File.lower().endswith('txt'):
-                Txt_File = File
-              else :
+              if  File.lower().endswith(('pdf','PDF')):
                 if File.endswith('PDF'):
                   os.rename(File,File.lower())
                   File = File.lower()
-                  
+                 
                 if File.lower().endswith('pdf'):
-                  Txt_File = pdf_ocr_func(File)
+                  Ex_Pdf_Limit = 100
+                  if user_id in Admins or Pdf_Page_Num(File) < Ex_Pdf_Limit : 
+                    Txt_File = pdf_ocr_func(File)
+                    if process == 'Trans' :
+                      Trans_Model = msg_list[3]
+                      if Trans_Model == 'GTrans' : 
+                          Txt_File = Google_Trans_Txt(Txt_File,Rate)
+                          Upld_File(Txt_File,File_Msg)
+                      elif Trans_Model == 'Gemini' : 
+                        Txt_File = Gemini_Trans_Txt(File_Msg,Txt_File,Rate)
+    
+                    elif process == 'Ocr' :
+                      Upld_File(Txt_File,File_Msg)
+                  else :
+                    File_Msg.reply(f'حد الملف {Ex_Pdf_Limit} صفحة',reply_to_message_id = msg.id)
+
+              else : 
+
+                if File.lower().endswith('txt'):
+                  Txt_File = File
+
                 elif File.lower().endswith('epub'):
                   Txt_File = extract_epub(File)
                 elif File.lower().endswith(Image_forms):
                   Txt_File,Docx_File = Ocr_Func(File)
             
-              if process == 'Trans' :
-                Trans_Model = msg_list[3]
-                if Trans_Model == 'GTrans' : 
-                    Txt_File = Google_Trans_Txt(Txt_File,Rate)
-                elif Trans_Model == 'Gemini' : 
-                  Txt_File = Gemini_Trans_Txt(File_Msg,Txt_File,Rate)
+                if process == 'Trans' :
+                  Trans_Model = msg_list[3]
+                  if Trans_Model == 'GTrans' : 
+                      Txt_File = Google_Trans_Txt(Txt_File,Rate)
+                  elif Trans_Model == 'Gemini' : 
+                    Txt_File = Gemini_Trans_Txt(File_Msg,Txt_File,Rate)
 
-              if File.lower().endswith(Image_forms):
-                Send_Text_Res(File_Msg,open(Txt_File,'r').read())
-              else :
-                if process == 'Ocr' :
-                  Upld_File(Txt_File,File_Msg)
-                elif process == 'Trans' :
-                  if Trans_Model == 'GTrans':
+                if File.lower().endswith(Image_forms):
+                  Send_Text_Res(File_Msg,open(Txt_File,'r').read())
+                else :
+                  if process == 'Ocr' :
                     Upld_File(Txt_File,File_Msg)
+                  elif process == 'Trans' :
+                    if Trans_Model == 'GTrans':
+                      Upld_File(Txt_File,File_Msg)
          
   
          elif process in ('Crop','Blur','Compress','Marg','Unlock','Convert','Silence','Amplify') :
@@ -1584,13 +1601,13 @@ def Multi_loop():
                if Pdf_Page_Num(File) < Ex_Pdf_Limit : 
                 Res_File = Pdf_Margin(File)
                else :
-                  File_Msg.reply(f'حد الملف {Ex_Pdf_Limit} ميغا')
+                  File_Msg.reply(f'حد الملف {Ex_Pdf_Limit} ميغا',reply_to_message_id = msg.id)
               elif process == 'Unlock' :
                
                 if Pdf_Page_Num(File) < Ex_Pdf_Limit : 
                   Res_File = Unlock_Pdf(File)
                 else :
-                    File_Msg.reply(f'حد الملف {Ex_Pdf_Limit} صفحة')
+                    File_Msg.reply(f'حد الملف {Ex_Pdf_Limit} صفحة',reply_to_message_id = msg.id)
               elif process == 'Compress' :
                 if File.lower().endswith('pdf'):
                   Res_File = Pdf_Compress(File)

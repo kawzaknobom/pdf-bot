@@ -1371,20 +1371,45 @@ def Media_Change_Ranges(file_path,Ranges):
   else: 
     Res_File = file_path.replace(Ex,'_Changed.mp4')
   time_ranges  = Ranges.split('=')
-  conditions = []
-  for r in time_ranges:
-    # تقسيم النص عند علامة الشرطة "-" للحصول على البداية والنهاية
-    start_str, end_str = r.split('-')
-    start_sec = time_to_seconds(start_str)
-    end_sec = time_to_seconds(end_str)
-    conditions.append(f"between(t,{start_sec},{end_sec})")
+  intervals = sorted([(time_to_seconds(r.split('-')[0]), time_to_seconds(r.split('-')[1])) for r in time_ranges])
 
-  timeline_conditions = "+".join(conditions)
+  # 2. بناء الأجزاء المقسمة (المعدلة وغير المعدلة)
+  # سنقوم بمعرفة طول الملف التقريبي أو نترك الجزء الأخير مفتوحاً لنهاية الملف
+  filter_chunks = []
+  inputs_to_concat = []
+  last_end = 0
+  label_idx = 0
 
-  # 3. دمج الشرط داخل أمر FFmpeg
-  filter_str = f"asetrate=44100*0.75:enable='{timeline_conditions}',aresample=44100:enable='{timeline_conditions}',atempo=4/3:enable='{timeline_conditions}'"
+  for start, end in intervals:
+      # أ) إذا كان هناك فجوة قبل الفترة المستهدفة، نأخذها كصوت طبيعي (بدون تغيير)
+      if start > last_end:
+          filter_chunks.append(f"[0:a]atrim=start={last_end}:end={start},asetpts=PTS-STARTPTS[norm{label_idx}]")
+          inputs_to_concat.append(f"[norm{label_idx}]")
+          label_idx += 1
+      
+      # ب) الجزء المستهدف بالتعديل (تطبيق الفلاتر الثلاثة عليه)
+      filter_chunks.append(
+          f"[0:a]atrim=start={start}:end={end},asetpts=PTS-STARTPTS,"
+          f"asetrate=44100*0.75,aresample=44100,atempo=4/3[mod{label_idx}]"
+      )
+      inputs_to_concat.append(f"[mod{label_idx}]")
+      label_idx += 1
+      last_end = end
 
-  Change_Cmd = f'{ffmpeg} -i "{file_path}" -af "{filter_str}" "{Mp3_File}"'
+  # ج) إضافة الجزء المتبقي من آخر فترة حتى نهاية الملف بالكامل
+  filter_chunks.append(f"[0:a]atrim=start={last_end},asetpts=PTS-STARTPTS[norm{label_idx}]")
+  inputs_to_concat.append(f"[norm{label_idx}]")
+  label_idx += 1
+
+  # د) دمج كل الأجزاء (المعدلة والطبيعية) معاً بالترتيب
+  concat_str = "".join(inputs_to_concat) + f"concat=n={label_idx}:v=0:a=1[outa]"
+
+  # تجميع الفلتر المركب بالكامل
+  full_filter_complex = ";".join(filter_chunks) + ";" + concat_str
+
+  # 3. صياغة أمر FFmpeg النهائي
+  Change_Cmd = f'ffmpeg -i "{file_path}" -filter_complex "{full_filter_complex}" -map "[outa]" "{Mp3_File}"'
+
   os.system(Change_Cmd)
   if file_path.lower().endswith(Video_Forms):
     Res_File = Vid_Mk(file_path,Mp3_File)

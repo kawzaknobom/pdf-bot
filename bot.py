@@ -43,7 +43,7 @@ from Mongo_Class import *
 
 MUB_Db = Mongo_Db("Telegram_Db","MUB")
 
-Blur_Dict , callback_dict ,Callback_D , Merge_Quee = {},{},{},{}
+Blur_Dict , callback_dict ,Callback_D , Merge_Quee , VChange = {},{},{},{},{}
 
 
 def Check_Gtoken(api_key) : 
@@ -119,10 +119,11 @@ g_langs = [ 'العربية | ar','الإنجليزية | en','الفرنسية 
 Ex_Pdf_Limit = 500
 Trim_Op = [['قص','Trim']]
 Epub_Opts = Cbx_Option 
-Media_Options = [['تضخيم','Amplify'],['تسريع','Speeden'],['تبطيئ','Slowen'],['تحويل','Convert'],['تغيير الصوت','Change']] + Compress_Op + Trim_Op + Other_Options
-Video_Options = [['تحويل','Convert'],['دمج','VMerge'],['بلور','Blur'],['Crop','Crop'],['تضخيم','Amplify']] + Compress_Op + Trim_Op + Other_Options
+Media_Options = [['تضخيم','Amplify'],['تغيير الصوت','Change']] + Trim_Op + Other_Options
+Video_Options = Media_Options + [['تحويل','Convert'],['دمج','VMerge'],['بلور','Blur'],['Crop','Crop']] + Compress_Op
+Audio_Options = Media_Options + [['دمج','AMerge'],['تخط الصمت','Silence'],['تضخيم','Amplify']]
+# Media_Options = [['تضخيم','Amplify'],['تسريع','Speeden'],['تبطيئ','Slowen'],['تحويل','Convert'],['تغيير الصوت','Change']] + Compress_Op + Trim_Op + Other_Options
 # Video_Options = Media_Options + [['كتم الصوت','Mute'],['إبدال الصوت','SubAud'],['دمج','VMerge']]
-Audio_Options = [['دمج','AMerge'],['تخط الصمت','Silence'],['تضخيم','Amplify']] + Trim_Op + Other_Options
 # Audio_Options = Media_Options  +  [['دمج','AMerge'],['إزالة الصمت','Silence'],['تقطيع','Frag']]
 
 
@@ -1340,6 +1341,57 @@ def Media_Trim(file_path,Rate):
   cap = f"`{strt_point}` to `{end_point}`"
   return Res_File,cap
 
+
+def time_to_seconds(t_str):
+    parts = list(map(int, t_str.strip().split(':')))
+    if len(parts) == 2:    # صيغة MM:SS
+        return parts[0] * 60 + parts[1]
+    elif len(parts) == 3:  # صيغة HH:MM:SS
+        return parts[0] * 3600 + parts[1] * 60 + parts[2]
+    return 0
+
+def Media_Change(file_path):
+  Ex = '.' + file_path.split('.')[-1]
+  Mp3_File = file_path.replace(Ex,'_Changed.mp3')
+  if file_path.lower().endswith(Audio_Forms):
+    Res_File = Mp3_File
+  else: 
+    Res_File = file_path.replace(Ex,'_Changed.mp4')
+  Change_Cmd = f'ffmpeg -i "{file_path}" -af asetrate=44100*0.75,aresample=44100,atempo=4/3 "{Mp3_File}"'
+  os.system(Change_Cmd)
+  if file_path.lower().endswith(Video_Forms):
+    Res_File = Vid_Mk(file_path,Mp3_File)
+  return Res_File
+
+def Media_Change_Ranges(file_path,Ranges):
+  Ex = '.' + file_path.split('.')[-1]
+  Mp3_File = file_path.replace(Ex,'_Changed.mp3')
+  if file_path.lower().endswith(Audio_Forms):
+    Res_File = Mp3_File
+  else: 
+    Res_File = file_path.replace(Ex,'_Changed.mp4')
+  time_ranges  = Ranges.split('=')
+  conditions = []
+  for r in time_ranges:
+    # تقسيم النص عند علامة الشرطة "-" للحصول على البداية والنهاية
+    start_str, end_str = r.split('-')
+    start_sec = time_to_seconds(start_str)
+    end_sec = time_to_seconds(end_str)
+    conditions.append(f"between(t,{start_sec},{end_sec})")
+
+  timeline_conditions = "+".join(conditions)
+
+  # 3. دمج الشرط داخل أمر FFmpeg
+  filter_str = f"asetrate=44100*0.75:enable='{timeline_conditions}',aresample=44100:enable='{timeline_conditions}',atempo=4/3:enable='{timeline_conditions}'"
+
+  Change_Cmd = f'ffmpeg -i "{file_path}" -af "{filter_str}" "{Mp3_File}"'
+  os.system(Change_Cmd)
+  if file_path.lower().endswith(Video_Forms):
+    Res_File = Vid_Mk(file_path,Mp3_File)
+  return Res_File
+
+
+
 ###### Main Loop ####
 
 def Multi_loop():
@@ -1581,7 +1633,7 @@ def Multi_loop():
                       Upld_File(Txt_File,File_Msg)
          
   
-         elif process in ('Crop','Blur','Compress','Marg','Unlock','Convert','Silence','Amplify') :
+         elif process in ('Crop','Blur','Change','Compress','Marg','Unlock','Convert','Silence','Amplify') :
               
               if process == 'Crop' :
                   Crop_Mode = Rate
@@ -1595,6 +1647,12 @@ def Multi_loop():
                   # if Blur_File['isfull'] : 
                   # else :
                   #   Res_File = Blur_Ranges(File,int(Rate),Blur_File)
+              elif process == 'Change' :
+                if Rate == 'full' : 
+                  Res_File = Media_Change(File)
+                else : 
+                   Res_File = Media_Change_Ranges(File,Rate)
+
               elif process == 'Amplify' : 
                 Res_File = Media_Amplify(File,Rate)
               elif process == 'Marg' :
@@ -2036,6 +2094,16 @@ def callback_query(CLIENT,CallbackQuery):
       replied = file_msg.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons, resize_keyboard=True),reply_to_message_id = file_msg.id)
   
   
+  elif Method == 'Change' :
+    key = f'{User_Id}_{file_msg.id}'
+    callback_dict[key] = CallbackQuery.data.strip()
+    CallbackQuery.message.delete()
+    Text = 'اختر نمط البلور'
+    Buttons = [
+          [KeyboardButton("Ch-Ranges"), KeyboardButton("Ch-Full Vid")]
+      ]
+    replied = file_msg.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons, resize_keyboard=True),reply_to_message_id = file_msg.id)
+
   elif Method in ['Blur','Amplify'] :
     if len(Callback_List) > 2 : 
         if not Method == 'Blur' :
@@ -2366,7 +2434,36 @@ def _telegram_file(client, message):
         Item = Item + f'_{Crop_Mode}_{replied.id}_{User_Id}'
         Item_add(Item)
         callback_dict.pop(key)
-  
+      
+      elif process == 'Change' :
+        if message.text in ['Ch-Full Vid','Ch-Ranges'] :
+          if message.text == 'Ch-Full Vid' :
+            Change_Mode = 'full'
+            Item = callback_dict[key]
+            Quee = MUB_Db.Grap_Values("Tasks","MainQ") 
+            replied = message.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ",reply_markup=ReplyKeyboardRemove(),reply_to_message_id = int(file_id))
+            Item = Item + f'_{Change_Mode}_{replied.id}_{User_Id}'
+            Item_add(Item)
+            callback_dict.pop(key)
+            
+          elif message.text == 'Ch-Ranges' :
+            Text = f'''الآن أرسل نطاقات تغيير الصوت بهذه الصورة
+                          hh:mm:ss-hh:mm:ss
+                          ويمكنك إرسال أكثر من مدى بهذه الصورة بترك مسافة بين كل مدى
+                          hh:mm:ss-hh:mm:ss hh:mm:ss-hh:mm:ss hh:mm:ss-hh:mm:ss
+            '''
+            message.reply(Text)
+
+        else : 
+          Change_Mode = message.text.replace(' ','=')
+          Item = callback_dict[key]
+          Quee = MUB_Db.Grap_Values("Tasks","MainQ") 
+          replied = message.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ",reply_markup=ReplyKeyboardRemove(),reply_to_message_id = int(file_id))
+          Item = Item + f'_{Change_Mode}_{replied.id}_{User_Id}'
+          Item_add(Item)
+          callback_dict.pop(key)
+
+
 def main():
     try:
         bot.start()

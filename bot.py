@@ -1357,7 +1357,7 @@ def Media_Change(file_path):
     Res_File = Mp3_File
   else: 
     Res_File = file_path.replace(Ex,'_Changed.mp4')
-  Change_Cmd = f'ffmpeg -i "{file_path}" -af asetrate=44100*0.75,aresample=44100,atempo=4/3 "{Mp3_File}"'
+  Change_Cmd = f'{ffmpeg} -i "{file_path}" -af asetrate=44100*0.75,aresample=44100,atempo=4/3 "{Mp3_File}"'
   os.system(Change_Cmd)
   if file_path.lower().endswith(Video_Forms):
     Res_File = Vid_Mk(file_path,Mp3_File)
@@ -1384,7 +1384,7 @@ def Media_Change_Ranges(file_path,Ranges):
   # 3. دمج الشرط داخل أمر FFmpeg
   filter_str = f"asetrate=44100*0.75:enable='{timeline_conditions}',aresample=44100:enable='{timeline_conditions}',atempo=4/3:enable='{timeline_conditions}'"
 
-  Change_Cmd = f'ffmpeg -i "{file_path}" -af "{filter_str}" "{Mp3_File}"'
+  Change_Cmd = f'{ffmpeg} -i "{file_path}" -af "{filter_str}" "{Mp3_File}"'
   os.system(Change_Cmd)
   if file_path.lower().endswith(Video_Forms):
     Res_File = Vid_Mk(file_path,Mp3_File)
@@ -2098,7 +2098,7 @@ def callback_query(CLIENT,CallbackQuery):
     key = f'{User_Id}_{file_msg.id}'
     callback_dict[key] = CallbackQuery.data.strip()
     CallbackQuery.message.delete()
-    Text = 'اختر نمط البلور'
+    Text = 'اختر نمط تغيير الصوت'
     Buttons = [
           [KeyboardButton("Ch-Ranges"), KeyboardButton("Ch-Full Vid")]
       ]

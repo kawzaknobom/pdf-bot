@@ -489,7 +489,7 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
         rep = f"عدد الأجزاء ( 0 | {len(Textlist)} )"
         with open(Txt_File, "a") as f: 
           pass
-        Msg_Reply = Msg.reply_document(Txt_File,cap=rep)
+        Msg_Reply = Msg.reply_document(Txt_File,caption=rep)
         
         # فتح الملف مرة واحدة للكتابة وتحديثه
         with open(Txt_File, 'a', encoding='utf-8') as f:

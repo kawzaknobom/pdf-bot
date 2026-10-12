@@ -1408,7 +1408,7 @@ def Media_Change_Ranges(file_path,Ranges):
   full_filter_complex = ";".join(filter_chunks) + ";" + concat_str
 
   # 3. صياغة أمر FFmpeg النهائي
-  Change_Cmd = f'ffmpeg -i "{file_path}" -filter_complex "{full_filter_complex}" -map "[outa]" "{Mp3_File}"'
+  Change_Cmd = f'{ffmpeg} -i "{file_path}" -filter_complex "{full_filter_complex}" -map "[outa]" "{Mp3_File}"'
 
   os.system(Change_Cmd)
   if file_path.lower().endswith(Video_Forms):

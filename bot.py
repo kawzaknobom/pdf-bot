@@ -571,7 +571,7 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
         file_name = TxtFile[:-4].split('/')[-1]
         check_gtrans_dict(user_id,file_name)
         msg_id,num = get_msgid_part(user_id,file_name)
-        if msg_id != 0 : 
+        if msg_id == 0 : 
           rep = f"عدد الأجزاء ( 0 | {len(Textlist)} )"
           with open(Txt_File, "a") as f: 
             f.write('.')

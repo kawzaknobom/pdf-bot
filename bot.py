@@ -545,8 +545,8 @@ def get_msgid_part(user_id,file_key):
     data = "Tasks"
     doc = MUB_Db.Col.find_one({"_id": data})
     file_data = doc.get("gtrans", {}).get(user_id, {}).get(file_key, {})
-    msg_id = file_data.get("msg_id")
-    part = file_data.get("part")
+    msg_id = file_data.get("msg_id") or 0
+    part = file_data.get("part") or 0
     return msg_id,part
 
 def add_msgid_part(user_key,file_key,new_msg_id,new_part):
@@ -568,7 +568,7 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
         Textlist = Wrap_Text(Text, Limit)
         Textlist = fixtextparts(Textlist)
         user_id = Msg.from_user.id
-        file_name = TxtFile[:-4]
+        file_name = TxtFile[:-4].split('/')[-1]
         check_gtrans_dict(user_id,file_name)
         msg_id,num = get_msgid_part(user_id,file_name)
         if msg_id != 0 : 

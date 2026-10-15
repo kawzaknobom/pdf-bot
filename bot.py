@@ -498,48 +498,66 @@ def fixtextparts(Textlist):
       TList.append(res)
   return TList
 
-def check_gtrans_dict(user_id,file_name) :
+def check_gtrans_dict(user_id, file_name):
   data = "Tasks"
-    # جلب المستند الحالي من قاعدة البيانات
+  # جلب المستند الحالي من قاعدة البيانات
   doc = MUB_Db.Col.find_one({"_id": data})
 
   # 1. التحقق من وجود مفتاح "gtrans"
   if doc is None or "gtrans" not in doc:
-    # إذا لم يكن موجوداً، نقوم بإنشائه كـ object (dictionary) فارغ
     MUB_Db.Col.update_one({"_id": data}, {"$set": {"gtrans": {}}}, upsert=True)
     doc = MUB_Db.Col.find_one({"_id": data})  # إعادة جلب المستند بعد التحديث
   else:
-    pass  # المفتاح موجود بالفعل
+    pass
 
   # 2. التحقق من وجود مفتاح "user_id" داخل "gtrans" وأن يكون من نوع object
   gtrans_data = doc.get("gtrans", {})
-  user_key = str(user_id)  # تحويل معرف المستخدم لنص لضمان التوافق مع المفاتيح
+  user_key = str(user_id)
 
   if user_key not in gtrans_data or not isinstance(
       gtrans_data.get(user_key), dict
   ):
-    # إذا لم يكن موجوداً أو ليس object، نقوم بإنشائه كـ object فارغ
     MUB_Db.Col.update_one(
         {"_id": data}, {"$set": {f"gtrans.{user_key}": {}}}, upsert=True
     )
     doc = MUB_Db.Col.find_one({"_id": data})
     gtrans_data = doc.get("gtrans", {})
   else:
-    pass  # مفتاح user_id موجود كـ object
+    pass
 
-  # 3. التحقق من وجود مفتاح "اسم الملف" داخل user_id وأن يكون من نوع object
+  # 3. التحقق من وجود مفتاح "اسم الملف" ومفتاحي msg_id و part داخله
   user_data = gtrans_data.get(user_key, {})
-  file_key = str(file_name)  # اسم الملف
+  file_key = str(file_name)
 
-  if file_key not in user_data or not isinstance(user_data.get(file_key), dict):
-    # إذا لم يكن موجوداً، نقوم بإنشائه كـ object يحتوي على msg_id و part بقيم int فارغة (0)
+  if file_key not in user_data or not isinstance(
+      user_data.get(file_key), dict
+  ):
+    # إذا لم يكن الملف موجوداً نهائياً، نقوم بإنشائه مع القيم الابتدائية
     MUB_Db.Col.update_one(
         {"_id": data},
-        {"$set": {f"gtrans.{user_key}.{file_key}": {"msg_id": 0, "part": 0}}},
+        {
+            "$set": {
+                f"gtrans.{user_key}.{file_key}": {"msg_id": 0, "part": 0}
+            }
+        },
         upsert=True,
     )
   else:
-    pass  # اسم الملف موجود مسبقاً كـ object
+    # الملف موجود، نتحقق الآن من وجود المفاتيح الداخلية بشكل منفصل
+    file_obj = user_data.get(file_key, {})
+    update_fields = {}
+
+    if "msg_id" not in file_obj:
+      update_fields[f"gtrans.{user_key}.{file_key}.msg_id"] = 0
+
+    if "part" not in file_obj:
+      update_fields[f"gtrans.{user_key}.{file_key}.part"] = 0
+
+    # إذا كان هناك أي مفتاح ناقص، نقوم بإضافته فقط دون تعديل البقية
+    if update_fields:
+      MUB_Db.Col.update_one(
+          {"_id": data}, {"$set": update_fields}, upsert=True
+      )
 
 def get_msgid_part(user_id,file_key):
     data = "Tasks"

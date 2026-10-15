@@ -481,31 +481,108 @@ def Gemini_Trans_Txt(Msg,TxtFile,lang_sy='ar'):
   Text = open(TxtFile,'r').read()
   Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,0,20000)
   return Txt_File
-  
+
+def fixtextparts(Textlist):
+  TList = []
+  rest = ''
+  for Num,part in enumerate(Textlist) : 
+    if len(rest.strip()) != 0:
+        part = rest + part
+    if Num != len(Textlist) - 1:
+      if '.' in part:
+        rest = part.split('.')[-1].strip()
+        res = part[:-len(rest)-1]
+      elif '\n' in part:
+        rest = part.split('\n')[-1].strip()
+        res = part[:-len(rest)-1]
+      TList.append(res)
+  return TList
+
+def check_gtrans_dict(user_id,file_name) :
+  data = "Tasks"
+    # جلب المستند الحالي من قاعدة البيانات
+  doc = MUB_Db.Col.find_one({"_id": data})
+
+  # 1. التحقق من وجود مفتاح "gtrans"
+  if doc is None or "gtrans" not in doc:
+    # إذا لم يكن موجوداً، نقوم بإنشائه كـ object (dictionary) فارغ
+    MUB_Db.Col.update_one({"_id": data}, {"$set": {"gtrans": {}}}, upsert=True)
+    doc = MUB_Db.Col.find_one({"_id": data})  # إعادة جلب المستند بعد التحديث
+  else:
+    pass  # المفتاح موجود بالفعل
+
+  # 2. التحقق من وجود مفتاح "user_id" داخل "gtrans" وأن يكون من نوع object
+  gtrans_data = doc.get("gtrans", {})
+  user_key = str(user_id)  # تحويل معرف المستخدم لنص لضمان التوافق مع المفاتيح
+
+  if user_key not in gtrans_data or not isinstance(
+      gtrans_data.get(user_key), dict
+  ):
+    # إذا لم يكن موجوداً أو ليس object، نقوم بإنشائه كـ object فارغ
+    MUB_Db.Col.update_one(
+        {"_id": data}, {"$set": {f"gtrans.{user_key}": {}}}, upsert=True
+    )
+    doc = MUB_Db.Col.find_one({"_id": data})
+    gtrans_data = doc.get("gtrans", {})
+  else:
+    pass  # مفتاح user_id موجود كـ object
+
+  # 3. التحقق من وجود مفتاح "اسم الملف" داخل user_id وأن يكون من نوع object
+  user_data = gtrans_data.get(user_key, {})
+  file_key = str(file_name)  # اسم الملف
+
+  if file_key not in user_data or not isinstance(user_data.get(file_key), dict):
+    # إذا لم يكن موجوداً، نقوم بإنشائه كـ object يحتوي على msg_id و part بقيم int فارغة (0)
+    MUB_Db.Col.update_one(
+        {"_id": data},
+        {"$set": {f"gtrans.{user_key}.{file_key}": {"msg_id": 0, "part": 0}}},
+        upsert=True,
+    )
+  else:
+    pass  # اسم الملف موجود مسبقاً كـ object
+
+def get_msgid_part(user_id,file_key):
+    data = "Tasks"
+    doc = MUB_Db.Col.find_one({"_id": data})
+    file_data = doc.get("gtrans", {}).get(user_id, {}).get(file_key, {})
+    msg_id = file_data.get("msg_id")
+    part = file_data.get("part")
+    return msg_id,part
+
+def add_msgid_part(user_key,file_key,new_msg_id,new_part):
+  data = "Tasks"
+  MUB_Db.Col.update_one(
+    {"_id": data},
+    {
+        "$set": {
+            f"gtrans.{user_key}.{file_key}.msg_id": new_msg_id,
+            f"gtrans.{user_key}.{file_key}.part": new_part,
+        }
+    },
+    upsert=True,
+)
+
 def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000):
-    rest = ''
     
     if len(Text) > Limit:
         Textlist = Wrap_Text(Text, Limit)
-        rep = f"عدد الأجزاء ( 0 | {len(Textlist)} )"
-        with open(Txt_File, "a") as f: 
-          f.write('.')
-        Msg_Reply = Msg.reply_document(Txt_File,caption=rep)
-        
+        Textlist = fixtextparts(Textlist)
+        user_id = Msg.from_user.id
+        file_name = TxtFile[:-4]
+        check_gtrans_dict(user_id,file_name)
+        msg_id,num = get_msgid_part(user_id,file_name)
+        if msg_id != 0 : 
+          rep = f"عدد الأجزاء ( 0 | {len(Textlist)} )"
+          with open(Txt_File, "a") as f: 
+            f.write('.')
+          Msg_Reply = Msg.reply_document(Txt_File,caption=rep)
+          add_msgid_part(user_id,file_name,Msg_Reply.id,0)
+        else : 
+          Msg_Reply = Get_Msg(bot,user_id,msg_id)
         # فتح الملف مرة واحدة للكتابة وتحديثه
         with open(Txt_File, 'a', encoding='utf-8') as f:
-            for Num, part in enumerate(Textlist):
-                
-                if len(rest.strip()) != 0:
-                    part = rest + part
-                if Num != len(Textlist) - 1:
-                    if '.' in part:
-                        rest = part.split('.')[-1].strip()
-                        part = part[:-len(rest)-1]
-                    elif '\n' in part:
-                        rest = part.split('\n')[-1].strip()
-                        part = part[:-len(rest)-1]
-                        
+            for Num, part in enumerate(Textlist,start=num):
+       
                 Txt_Part = TxtFile.replace(' ', '_').replace('.txt', f'_P0000{Num}.txt')
                 
                 with open(Txt_Part, 'w', encoding='utf-8') as tp:
@@ -531,12 +608,14 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
                         
                 f.write(Res_Text + '\n')
                 f.flush() # ضمان حفظ البيانات في الملف فوراً
+                add_msgid_part(user_id,file_name,Msg_Reply.id,Num+1)
                 rep = f"عدد الأجزاء ( {Num+1} | {len(Textlist)} )"
                 Msg_Reply.edit_media(media=InputMediaDocument(Txt_File, caption=rep))
 
         # رفع الملف بعد الانتهاء وتأكيد إغلاقه تماماً
         Msg_Reply.delete()
         Upld_File(Txt_File, Msg)
+        MUB_Db.Col.update_one({"_id": "Tasks"},{"$unset": {f"gtrans.{user_id}.{file_name}": ""}})
         
     else:
         Res_Text, Req_Count = Gemini_BTxt(TxtFile, Req_Count, lang_sy)
@@ -1645,7 +1724,8 @@ def Multi_loop():
                   Trans_Model = msg_list[3]
                   if Trans_Model == 'GTrans' : 
                       Txt_File = Google_Trans_Txt(Txt_File,Rate)
-                  elif Trans_Model == 'Gemini' : 
+                  elif Trans_Model == 'Gemini' :
+                      
                     Txt_File = Gemini_Trans_Txt(File_Msg,Txt_File,Rate)
 
                 if File.lower().endswith(Image_forms):

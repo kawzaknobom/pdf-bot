@@ -585,7 +585,7 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
     if len(Text) > Limit:
         Textlist = Wrap_Text(Text, Limit)
         Textlist = fixtextparts(Textlist)
-        user_id = Msg.from_user.id
+        user_id = str(Msg.from_user.id)
         file_name = TxtFile[:-4].split('/')[-1].split('_')[0]
         check_gtrans_dict(user_id,file_name)
         msg_id,num = get_msgid_part(user_id,file_name)

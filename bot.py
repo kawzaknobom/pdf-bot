@@ -653,13 +653,16 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
         Upld_File(Txt_File, Msg)
       
 def parse_retry_seconds(err_str):
-    """Parses either a pure second count (digits) or a time string (1h13m40, 05:20, etc.) into total seconds."""
+    """Parses either a pure second count (digits) or a time string (1h13m40, 18m15, etc.) into total seconds safely."""
     try:
         # Extract the portion after 'retry'
         if 'retry' in err_str:
             time_str = err_str.split('retry')[1].strip().split()[0].replace('"', '').replace("'", "")
         else:
             time_str = err_str.strip()
+
+        # Clean up any remaining quotes or unwanted spaces
+        time_str = time_str.strip()
 
         # Case 1: Pure digits (e.g., "45" or "300")
         if time_str.isdigit():
@@ -673,15 +676,22 @@ def parse_retry_seconds(err_str):
             elif len(parts) == 2:
                 return int((parts[0] * 60) + parts[1])
 
-        # Case 3: Letter-based format (e.g., "1h13m40s" or "1h13m40")
+        # Case 3: Letter-based format (e.g., "1h13m40s" or "18m15")
         hours = re.search(r'(\d+)\s*h', time_str, re.IGNORECASE)
         minutes = re.search(r'(\d+)\s*m', time_str, re.IGNORECASE)
         seconds = re.search(r'(\d+)\s*s?', time_str, re.IGNORECASE)
 
         total = 0
-        if hours: total += int(hours.group(1)) * 3600
-        if minutes: total += int(minutes.group(1)) * 60
-        if seconds: total += int(seconds.group(1))
+        if hours: 
+            total += int(hours.group(1)) * 3600
+        if minutes: 
+            total += int(minutes.group(1)) * 60
+        if seconds: 
+            # Make sure we don't accidentally match the 'm' from 'm' groups if regex overlaps, 
+            # or handle standard trailing seconds
+            sec_val = seconds.group(1)
+            # Ensure it's not capturing part of minutes if formatted weirdly
+            total += int(sec_val)
 
         if total > 0:
             return total

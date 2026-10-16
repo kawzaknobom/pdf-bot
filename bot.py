@@ -593,10 +593,17 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
           rep = f"عدد الأجزاء ( 0 | {len(Textlist)} )"
           with open(Txt_File, "a") as f: 
             f.write('.')
+            f.flush()
           Msg_Reply = Msg.reply_document(Txt_File,caption=rep)
           add_msgid_part(user_id,file_name,Msg_Reply.id,0)
         else : 
           Msg_Reply = Get_Msg(bot,user_id,msg_id)
+          dl_path = '/'.join(TxtFile.split('/')[:-1])
+          ResF = File_Dl(Msg_Reply,dl_path)
+          Res_T = open(ResF,'r').read()
+          with open(Txt_File, "a",encoding='utf-8') as f: 
+            f.write(Res_T)
+            f.flush()
         # فتح الملف مرة واحدة للكتابة وتحديثه
         with open(Txt_File, 'a', encoding='utf-8') as f:
             for Num, part in enumerate(Textlist,start=num):

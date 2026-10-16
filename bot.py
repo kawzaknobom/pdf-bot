@@ -755,10 +755,10 @@ def Gemini_Trans(Text,lang_sy='ar',Req_Count=0,Api_Index=0):
     Res = Res + Tr_linebreak + Text + Tr_linebreak
     return Res,Req_Count
   except Exception as err : 
-    if 'retry' in str(err):
-         splitted = str(err).split('retry')[1][3:]
-         seconds = int(splitted.split('.')[0])
-         time.sleep(seconds)
+    # if 'retry' in str(err):
+    #      splitted = str(err).split('retry')[1][3:]
+    #      seconds = int(splitted.split('.')[0])
+    #      time.sleep(seconds)
     Req_Count+=1
     New_Index = Api_Index+1 
     if New_Index < len(Gemini_Apis):

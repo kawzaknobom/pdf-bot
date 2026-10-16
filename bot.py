@@ -653,9 +653,9 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
         Upld_File(Txt_File, Msg)
       
 def parse_retry_seconds(err_str):
-    """Parses either a pure second count (digits) or a time string (e.g., ' 23h53m32') into total seconds safely."""
+    """Robustly parses time strings (e.g., ' 23h42m35', '1h13m40s', '45') into total seconds."""
     try:
-        # Extract the portion after 'retry'
+        # Extract the portion after 'retry' if present
         if 'retry' in err_str:
             time_str = err_str.split('retry')[1].strip().split()[0].replace('"', '').replace("'", "")
         else:
@@ -675,35 +675,30 @@ def parse_retry_seconds(err_str):
             elif len(parts) == 2:
                 return int((parts[0] * 60) + parts[1])
 
-        # Case 3: Letter-based format (e.g., "23h53m32" or "1h13m40s")
-        hours = re.search(r'(\d+)\s*h', time_str,cheiden := re.IGNORECASE) if 'h' in time_str else None
-        # Better robust search patterns:
-        hours_match = re.search(r'(\d+)\s*h', time_str, re.IGNORECASE)
-        minutes_match = re.search(r'(\d+)\s*m', time_str, re.IGNORECASE)
-        
-        # To avoid capturing seconds as part of minutes if 's' is omitted, look for digits right before the end or before 's'
-        seconds_match = re.search(r'(?:m\s*(\d+)|(\d+)\s*s)', time_str, re.IGNORECASE)
-        
-        # Fallback if standard seconds pattern fails but there are trailing digits after 'm'
+        # Case 3: Letter-based format (e.g., "23h42m35", "1h13m40s", "18m15")
         total = 0
-        if hours_match: 
-            total += int(hours_match.group(1)) * 3600
-        if minutes_match: 
-            total += int(minutes_match.group(1)) * 60
+        
+        hours = re.search(r'(\d+)\s*h', time_str, re.IGNORECASE)
+        minutes = re.search(r'(\d+)\s*m', time_str, re.IGNORECASE)
+        
+        if hours: 
+            total += int(hours.group(1)) * 3600
+        if minutes: 
+            total += int(minutes.group(1)) * 60
             
+        # Match seconds whether they have an 's' suffix or are trailing numbers after 'm' or at the end
+        seconds_match = re.search(r'(?:m\s*(\d+)|(\d+)\s*s)', time_str, re.IGNORECASE)
         if seconds_match:
             sec_val = seconds_match.group(1) if seconds_match.group(1) else seconds_match.group(2)
             if sec_val:
                 total += int(sec_val)
         else:
-            # Fallback: if it ends with digits (like '23h53m32'), grab the trailing digits after the last 'm'
-            if 'm' in time_str:
-                try:
-                    tail = time_str.split('m')[-1].strip()
-                    if tail.isdigit():
-                        total += int(tail)
-                except Exception:
-                    pass
+            # Fallback for formats like '23h42m35' where trailing digits follow 'm' without an 's'
+            parts_m = time_str.split('m')
+            if len(parts_m) > 1:
+                tail = parts_m[-1].strip().lower().replace('s', '')
+                if tail.isdigit():
+                    total += int(tail)
 
         if total > 0:
             return total

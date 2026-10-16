@@ -726,9 +726,9 @@ def Gemini_BTxt(TxtFile,Req_Count,lang_sy='ar',Api_Index=0) :
     return Res,Req_Count
   except Exception as err : 
     err_str = str(err)
-    if 'retry' in err_str:
-       seconds = parse_retry_seconds(err_str)
-       time.sleep(seconds)
+    # if 'retry' in err_str:
+    #    seconds = parse_retry_seconds(err_str)
+    #    time.sleep(seconds)
     Req_Count+=1
     New_Index = Api_Index+1 
     if New_Index < len(Gemini_Apis):

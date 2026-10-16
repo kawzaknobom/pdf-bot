@@ -653,7 +653,7 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
         Upld_File(Txt_File, Msg)
       
 def parse_retry_seconds(err_str):
-    """Parses either a pure second count (digits) or a time string (1h13m40, 18m15, etc.) into total seconds safely."""
+    """Parses either a pure second count (digits) or a time string (e.g., ' 23h53m32') into total seconds safely."""
     try:
         # Extract the portion after 'retry'
         if 'retry' in err_str:
@@ -661,7 +661,6 @@ def parse_retry_seconds(err_str):
         else:
             time_str = err_str.strip()
 
-        # Clean up any remaining quotes or unwanted spaces
         time_str = time_str.strip()
 
         # Case 1: Pure digits (e.g., "45" or "300")
@@ -676,22 +675,35 @@ def parse_retry_seconds(err_str):
             elif len(parts) == 2:
                 return int((parts[0] * 60) + parts[1])
 
-        # Case 3: Letter-based format (e.g., "1h13m40s" or "18m15")
-        hours = re.search(r'(\d+)\s*h', time_str, re.IGNORECASE)
-        minutes = re.search(r'(\d+)\s*m', time_str, re.IGNORECASE)
-        seconds = re.search(r'(\d+)\s*s?', time_str, re.IGNORECASE)
-
+        # Case 3: Letter-based format (e.g., "23h53m32" or "1h13m40s")
+        hours = re.search(r'(\d+)\s*h', time_str,cheiden := re.IGNORECASE) if 'h' in time_str else None
+        # Better robust search patterns:
+        hours_match = re.search(r'(\d+)\s*h', time_str, re.IGNORECASE)
+        minutes_match = re.search(r'(\d+)\s*m', time_str, re.IGNORECASE)
+        
+        # To avoid capturing seconds as part of minutes if 's' is omitted, look for digits right before the end or before 's'
+        seconds_match = re.search(r'(?:m\s*(\d+)|(\d+)\s*s)', time_str, re.IGNORECASE)
+        
+        # Fallback if standard seconds pattern fails but there are trailing digits after 'm'
         total = 0
-        if hours: 
-            total += int(hours.group(1)) * 3600
-        if minutes: 
-            total += int(minutes.group(1)) * 60
-        if seconds: 
-            # Make sure we don't accidentally match the 'm' from 'm' groups if regex overlaps, 
-            # or handle standard trailing seconds
-            sec_val = seconds.group(1)
-            # Ensure it's not capturing part of minutes if formatted weirdly
-            total += int(sec_val)
+        if hours_match: 
+            total += int(hours_match.group(1)) * 3600
+        if minutes_match: 
+            total += int(minutes_match.group(1)) * 60
+            
+        if seconds_match:
+            sec_val = seconds_match.group(1) if seconds_match.group(1) else seconds_match.group(2)
+            if sec_val:
+                total += int(sec_val)
+        else:
+            # Fallback: if it ends with digits (like '23h53m32'), grab the trailing digits after the last 'm'
+            if 'm' in time_str:
+                try:
+                    tail = time_str.split('m')[-1].strip()
+                    if tail.isdigit():
+                        total += int(tail)
+                except Exception:
+                    pass
 
         if total > 0:
             return total

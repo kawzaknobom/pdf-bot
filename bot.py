@@ -606,7 +606,8 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
             f.flush()
         # فتح الملف مرة واحدة للكتابة وتحديثه
         with open(Txt_File, 'a', encoding='utf-8') as f:
-            for Num, part in enumerate(Textlist,start=num):
+            for Num, part in enumerate(Textlist):
+              if Num >= num :
        
                 Txt_Part = TxtFile.replace(' ', '_').replace('.txt', f'_P0000{Num}.txt')
                 

@@ -13,7 +13,7 @@ from pyrogram.enums import MessageEntityType
 
 
 from functools import reduce
-import os,re,random, threading,time,subprocess,shutil,img2pdf,json,requests,edge_tts,cv2
+import os,re,random, threading,time,subprocess,shutil,img2pdf,json,requests,edge_tts,cv2,gc
 
 
 from pypdf import PdfReader
@@ -1845,9 +1845,11 @@ def Multi_loop():
 
    MUB_Db.Delete_Item("Tasks","MainQ",Multi_Q[0])
    del Multi_Q[0]
-   if len(MUB_Db.Grap_Values("Tasks","MainQ")) != 0 :
+  
+  gc.collect()
+  if len(MUB_Db.Grap_Values("Tasks","MainQ")) != 0 :
         return Multi_loop()
-   else :
+  else :
       loop_name = "Public_Loop"
       if globals()[loop_name] :	
         globals()[loop_name] = False

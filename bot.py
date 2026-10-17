@@ -648,15 +648,19 @@ def Gemini_Trans_Txt(Msg,TxtFile,lang_sy='ar'):
 def Gemini_CTxt(Msg, TxtFile, lang_sy, Req_Count=0, Limit=20000):
     Txt_File = TxtFile.replace('.txt','_Translated.txt')
     Text = open(TxtFile,'r').read()
-    if len(Text) > Limit:
+    Text_Num = len(Text)
+    if Text_Num > Limit:
         Textlist = Wrap_Text(Text, Limit)
+        del Text
         Textlist = fixtextparts(Textlist)
+        Parts = save_txt(TxtFile,Textlist)
+        Textlist.clear()
         user_id = str(Msg.from_user.id)
         file_name = TxtFile[:-4].split('/')[-1].split('_')[0]
         check_gtrans_dict(user_id,file_name)
         msg_id,num = get_msgid_part(user_id,file_name)
         if msg_id == 0 : 
-          rep = f"عدد الأجزاء ( 0 | {len(Textlist)} )"
+          rep = f"عدد الأجزاء ( 0 | {len(Parts)} )"
           with open(Txt_File, "a") as f: 
             f.write('.')
             f.flush()
@@ -671,8 +675,6 @@ def Gemini_CTxt(Msg, TxtFile, lang_sy, Req_Count=0, Limit=20000):
             f.write(Res_T)
             f.flush()
         # فتح الملف مرة واحدة للكتابة وتحديثه
-        Parts = save_txt(TxtFile,Textlist)
-        Textlist.clear()
         for Num,Part in enumerate(Parts) :
            with open(Txt_File, 'a', encoding='utf-8') as f:
               if Num >= num :
@@ -698,7 +700,7 @@ def Gemini_CTxt(Msg, TxtFile, lang_sy, Req_Count=0, Limit=20000):
                 f.write(Res_Text + '\n')
                 f.flush() # ضمان حفظ البيانات في الملف فوراً
                 add_msgid_part(user_id,file_name,Msg_Reply.id,Num+1)
-                rep = f"عدد الأجزاء ( {Num+1} | {len(Textlist)} )"
+                rep = f"عدد الأجزاء ( {Num+1} | {len(Parts)} )"
                 Msg_Reply.edit_media(media=InputMediaDocument(Txt_File, caption=rep))
 
         # رفع الملف بعد الانتهاء وتأكيد إغلاقه تماماً

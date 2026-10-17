@@ -674,6 +674,7 @@ def Gemini_CTxt(Msg, TxtFile, lang_sy, Req_Count=0, Limit=20000):
         Parts = save_txt(TxtFile,Textlist)
         Textlist.clear()
         for Num,Part in enumerate(Parts) :
+           with open(Txt_File, 'a', encoding='utf-8') as f:
               if Num >= num :
                 Res_Text, Req_Count = Gemini_BTxt(Part, Req_Count, lang_sy)
                 if Res_Text == 'ERROR':

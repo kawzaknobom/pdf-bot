@@ -85,7 +85,7 @@ Admins = admins.split(',')
 def Pyrogram_Client(Bot_Token):
   Bot_Identifier = Bot_Token.split(':')[0]
   Session_file = Bot_Identifier+'_session_prm_bot'
-  bot = Client(Session_file,api_id=Api_Id,api_hash=Api_Hash,bot_token=Bot_Token)
+  bot = Client(Session_file,api_id=Api_Id,api_hash=Api_Hash,bot_token=Bot_Token,workers=1)
   return bot,Bot_Identifier
 bot,Bot_Identifier = Pyrogram_Client(Bot_Token)
 
@@ -2422,7 +2422,6 @@ def refunc(client,message):
       pass
     Quee = MUB_Db.Grap_Values("Tasks","MainQ")
     replied = file_msg.reply(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ",reply_to_message_id = int(file_id))
-    
     if Callback_D[User_Id]["Renm"] :
 
       Process = 'Renm'

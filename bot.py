@@ -472,16 +472,6 @@ def Grap_Lang(Sym):
       break
   return F_L
 
-Gemini_Model = 'gemini-2.5-flash-lite'
-
-    
-def Gemini_Trans_Txt(Msg,TxtFile,lang_sy='ar'):
-  Txt_File = TxtFile.replace('.txt','_Translated.txt')
-  Check_File(Txt_File)
-  Text = open(TxtFile,'r').read()
-  Gemini_CTxt(Msg,TxtFile,Txt_File,Text,lang_sy,0,20000)
-  return Txt_File
-
 def fixtextparts(Textlist):
   TList = []
   rest = ''
@@ -580,8 +570,17 @@ def add_msgid_part(user_key,file_key,new_msg_id,new_part):
     upsert=True,
 )
 
-def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000):
+Gemini_Model = 'gemini-2.5-flash-lite'
+
     
+def Gemini_Trans_Txt(Msg,TxtFile,lang_sy='ar'):
+  Txt_File = TxtFile.replace('.txt','_Translated.txt')
+  Gemini_CTxt(Msg,TxtFile,lang_sy,0,20000)
+  return Txt_File
+
+def Gemini_CTxt(Msg, TxtFile, lang_sy, Req_Count=0, Limit=20000):
+    Txt_File = TxtFile.replace('.txt','_Translated.txt')
+    Text = open(TxtFile,'r').read()
     if len(Text) > Limit:
         Textlist = Wrap_Text(Text, Limit)
         Textlist = fixtextparts(Textlist)
@@ -621,7 +620,7 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
                 if Res_Text == 'ERROR':
                     New_Limit = Limit - 1000
                     if New_Limit > 0:
-                        return Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count, New_Limit)
+                        return Gemini_CTxt(Msg, TxtFile, lang_sy, Req_Count, New_Limit)
                     else:
                         Rest_File = TxtFile.replace('.txt', '_Res.txt')
                         with open(Rest_File, 'w', encoding='utf-8') as Rf:
@@ -650,7 +649,7 @@ def Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count=0, Limit=20000)
         if Res_Text == 'ERROR':
             New_Limit = Limit - 1000
             if New_Limit != 0:
-                return Gemini_CTxt(Msg, TxtFile, Txt_File, Text, lang_sy, Req_Count, New_Limit)
+                return Gemini_CTxt(Msg, TxtFile,lang_sy, Req_Count, New_Limit)
             else:
                 Msg.reply('انتهت توكنات اليوم 🌿')
                 return

@@ -85,7 +85,7 @@ Admins = admins.split(',')
 def Pyrogram_Client(Bot_Token):
   Bot_Identifier = Bot_Token.split(':')[0]
   Session_file = Bot_Identifier+'_session_prm_bot'
-  bot = Client(Session_file,api_id=Api_Id,api_hash=Api_Hash,bot_token=Bot_Token,workers=1)
+  bot = Client(Session_file,api_id=Api_Id,api_hash=Api_Hash,bot_token=Bot_Token,in_memory=False)
   return bot,Bot_Identifier
 bot,Bot_Identifier = Pyrogram_Client(Bot_Token)
 

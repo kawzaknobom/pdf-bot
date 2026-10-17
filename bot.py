@@ -569,96 +569,6 @@ def add_msgid_part(user_key,file_key,new_msg_id,new_part):
     },
     upsert=True,
 )
-
-Gemini_Model = 'gemini-2.5-flash-lite'
-
-    
-def Gemini_Trans_Txt(Msg,TxtFile,lang_sy='ar'):
-  Txt_File = TxtFile.replace('.txt','_Translated.txt')
-  Gemini_CTxt(Msg,TxtFile,lang_sy,0,20000)
-  return Txt_File
-
-def Gemini_CTxt(Msg, TxtFile, lang_sy, Req_Count=0, Limit=20000):
-    Txt_File = TxtFile.replace('.txt','_Translated.txt')
-    Text = open(TxtFile,'r').read()
-    if len(Text) > Limit:
-        Textlist = Wrap_Text(Text, Limit)
-        Textlist = fixtextparts(Textlist)
-        user_id = str(Msg.from_user.id)
-        file_name = TxtFile[:-4].split('/')[-1].split('_')[0]
-        check_gtrans_dict(user_id,file_name)
-        msg_id,num = get_msgid_part(user_id,file_name)
-        if msg_id == 0 : 
-          rep = f"عدد الأجزاء ( 0 | {len(Textlist)} )"
-          with open(Txt_File, "a") as f: 
-            f.write('.')
-            f.flush()
-          Msg_Reply = Msg.reply_document(Txt_File,caption=rep)
-          add_msgid_part(user_id,file_name,Msg_Reply.id,0)
-        else : 
-          Msg_Reply = Get_Msg(bot,user_id,msg_id)
-          dl_path = '/'.join(TxtFile.split('/')[:-1])
-          ResF = File_Dl(Msg_Reply,dl_path)
-          Res_T = open(ResF,'r').read()
-          with open(Txt_File, "a",encoding='utf-8') as f: 
-            f.write(Res_T)
-            f.flush()
-        # فتح الملف مرة واحدة للكتابة وتحديثه
-        with open(Txt_File, 'a', encoding='utf-8') as f:
-            for Num, part in enumerate(Textlist):
-              if Num >= num :
-       
-                Txt_Part = TxtFile.replace(' ', '_').replace('.txt', f'_P0000{Num}.txt')
-                
-                with open(Txt_Part, 'w', encoding='utf-8') as tp:
-                    tp.write(part)
-                    
-                Res_Text, Req_Count = Gemini_BTxt(Txt_Part, Req_Count, lang_sy)
-                if Res_Text == 'ERROR':
-                    Res_Text, Req_Count = Gemini_Trans(part, lang_sy, Req_Count)
-                    
-                if Res_Text == 'ERROR':
-                    New_Limit = Limit - 1000
-                    if New_Limit > 0:
-                        return Gemini_CTxt(Msg, TxtFile, lang_sy, Req_Count, New_Limit)
-                    else:
-                        Rest_File = TxtFile.replace('.txt', '_Res.txt')
-                        with open(Rest_File, 'w', encoding='utf-8') as Rf:
-                            for sec in Textlist[Num:]:
-                                Rf.write(sec)
-                        Upld_File(Txt_File, Msg)
-                        Upld_File(Rest_File, Msg)
-                        Msg.reply('انتهت توكنات اليوم 🌿')
-                        return
-                        
-                f.write(Res_Text + '\n')
-                f.flush() # ضمان حفظ البيانات في الملف فوراً
-                add_msgid_part(user_id,file_name,Msg_Reply.id,Num+1)
-                rep = f"عدد الأجزاء ( {Num+1} | {len(Textlist)} )"
-                Msg_Reply.edit_media(media=InputMediaDocument(Txt_File, caption=rep))
-
-        # رفع الملف بعد الانتهاء وتأكيد إغلاقه تماماً
-        Msg_Reply.delete()
-        Upld_File(Txt_File, Msg)
-        MUB_Db.Col.update_one({"_id": "Tasks"},{"$unset": {f"gtrans.{user_id}.{file_name}": ""}})
-        
-    else:
-        Res_Text, Req_Count = Gemini_BTxt(TxtFile, Req_Count, lang_sy)
-        if Res_Text == 'ERROR':
-            Res_Text, Req_Count = Gemini_Trans(Text, lang_sy, Req_Count)
-        if Res_Text == 'ERROR':
-            New_Limit = Limit - 1000
-            if New_Limit != 0:
-                return Gemini_CTxt(Msg, TxtFile,lang_sy, Req_Count, New_Limit)
-            else:
-                Msg.reply('انتهت توكنات اليوم 🌿')
-                return
-                
-        with open(Txt_File, 'w', encoding='utf-8') as f:
-            f.write(Res_Text)
-            
-        Upld_File(Txt_File, Msg)
-      
 def parse_retry_seconds(err_str):
     """Robustly parses time strings (e.g., ' 23h42m35', '1h13m40s', '45') into total seconds."""
     try:
@@ -715,6 +625,103 @@ def parse_retry_seconds(err_str):
         
     # Default fallback if parsing fails completely
     return 60
+
+def save_txt(TxtFile,Textlist):
+            Parts = []
+        # with open(Txt_File, 'a', encoding='utf-8') as f:
+            for Num, part in enumerate(Textlist):
+              # if Num >= num :
+                Txt_Part = TxtFile.replace(' ', '_').replace('.txt', f'_P0000{Num}.txt')
+                with open(Txt_Part, 'w', encoding='utf-8') as tp:
+                    tp.write(part)
+                Parts.append(Txt_Part)
+            return Parts
+
+Gemini_Model = 'gemini-2.5-flash-lite'
+
+    
+def Gemini_Trans_Txt(Msg,TxtFile,lang_sy='ar'):
+  Txt_File = TxtFile.replace('.txt','_Translated.txt')
+  Gemini_CTxt(Msg,TxtFile,lang_sy,0,20000)
+  return Txt_File
+
+def Gemini_CTxt(Msg, TxtFile, lang_sy, Req_Count=0, Limit=20000):
+    Txt_File = TxtFile.replace('.txt','_Translated.txt')
+    Text = open(TxtFile,'r').read()
+    if len(Text) > Limit:
+        Textlist = Wrap_Text(Text, Limit)
+        Textlist = fixtextparts(Textlist)
+        user_id = str(Msg.from_user.id)
+        file_name = TxtFile[:-4].split('/')[-1].split('_')[0]
+        check_gtrans_dict(user_id,file_name)
+        msg_id,num = get_msgid_part(user_id,file_name)
+        if msg_id == 0 : 
+          rep = f"عدد الأجزاء ( 0 | {len(Textlist)} )"
+          with open(Txt_File, "a") as f: 
+            f.write('.')
+            f.flush()
+          Msg_Reply = Msg.reply_document(Txt_File,caption=rep)
+          add_msgid_part(user_id,file_name,Msg_Reply.id,0)
+        else : 
+          Msg_Reply = Get_Msg(bot,user_id,msg_id)
+          dl_path = '/'.join(TxtFile.split('/')[:-1])
+          ResF = File_Dl(Msg_Reply,dl_path)
+          Res_T = open(ResF,'r').read()
+          with open(Txt_File, "a",encoding='utf-8') as f: 
+            f.write(Res_T)
+            f.flush()
+        # فتح الملف مرة واحدة للكتابة وتحديثه
+        Parts = save_txt(TxtFile,Textlist)
+        Textlist.clear()
+        for Num,Part in enumerate(Parts) :
+              if Num >= num :
+                Res_Text, Req_Count = Gemini_BTxt(Part, Req_Count, lang_sy)
+                if Res_Text == 'ERROR':
+                    ptext = open(Part,'r').read()
+                    Res_Text, Req_Count = Gemini_Trans(ptext, lang_sy, Req_Count)
+                    
+                if Res_Text == 'ERROR':
+                    New_Limit = Limit - 1000
+                    if New_Limit > 0:
+                        return Gemini_CTxt(Msg, TxtFile, lang_sy, Req_Count, New_Limit)
+                    else:
+                        Rest_File = TxtFile.replace('.txt', '_Res.txt')
+                        with open(Rest_File, 'w', encoding='utf-8') as Rf:
+                            for sec in Part[Num:]:
+                                Rf.write(open(sec,'r').read())
+                        Upld_File(Txt_File, Msg)
+                        Upld_File(Rest_File, Msg)
+                        Msg.reply('انتهت توكنات اليوم 🌿')
+                        return
+                        
+                f.write(Res_Text + '\n')
+                f.flush() # ضمان حفظ البيانات في الملف فوراً
+                add_msgid_part(user_id,file_name,Msg_Reply.id,Num+1)
+                rep = f"عدد الأجزاء ( {Num+1} | {len(Textlist)} )"
+                Msg_Reply.edit_media(media=InputMediaDocument(Txt_File, caption=rep))
+
+        # رفع الملف بعد الانتهاء وتأكيد إغلاقه تماماً
+        Msg_Reply.delete()
+        Upld_File(Txt_File, Msg)
+        MUB_Db.Col.update_one({"_id": "Tasks"},{"$unset": {f"gtrans.{user_id}.{file_name}": ""}})
+        
+    else:
+        Res_Text, Req_Count = Gemini_BTxt(TxtFile, Req_Count, lang_sy)
+        if Res_Text == 'ERROR':
+            Res_Text, Req_Count = Gemini_Trans(Text, lang_sy, Req_Count)
+        if Res_Text == 'ERROR':
+            New_Limit = Limit - 1000
+            if New_Limit != 0:
+                return Gemini_CTxt(Msg, TxtFile,lang_sy, Req_Count, New_Limit)
+            else:
+                Msg.reply('انتهت توكنات اليوم 🌿')
+                return
+                
+        with open(Txt_File, 'w', encoding='utf-8') as f:
+            f.write(Res_Text)
+            
+        Upld_File(Txt_File, Msg)
+      
 
 def Gemini_BTxt(TxtFile,Req_Count,lang_sy='ar',Api_Index=0) : 
   Gemini_Apis = Apis

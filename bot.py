@@ -1561,7 +1561,6 @@ def Multi_loop():
    Multi_Q = MUB_Db.Grap_Values("Tasks", "MainQ")
    if not Multi_Q or len(Multi_Q) == 0:
       break
-
    for elem in range (1,len(Multi_Q)) :
         try :
          A_Reply_List = Multi_Q[elem].split('_')

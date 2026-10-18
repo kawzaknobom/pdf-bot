@@ -1551,11 +1551,16 @@ def Media_Change_Ranges(file_path,Ranges):
 ###### Main Loop ####
 
 def Multi_loop():
-
+  loop_name = "Public_Loop"
+  globals()[loop_name] = True
   Multi_Q = MUB_Db.Grap_Values("Tasks","MainQ")
   if len(Multi_Q) == 0 :
     return 
-  for obj in range (0,len(Multi_Q)) :
+  
+  while True:
+   Multi_Q = MUB_Db.Grap_Values("Tasks", "MainQ")
+   if not Multi_Q or len(Multi_Q) == 0:
+      break
 
    for elem in range (1,len(Multi_Q)) :
         try :
@@ -1777,7 +1782,6 @@ def Multi_loop():
                   if Trans_Model == 'GTrans' : 
                       Txt_File = Google_Trans_Txt(Txt_File,Rate)
                   elif Trans_Model == 'Gemini' :
-                      
                     Txt_File = Gemini_Trans_Txt(File_Msg,Txt_File,Rate)
 
                 if File.lower().endswith(Image_forms):
@@ -1845,23 +1849,18 @@ def Multi_loop():
         reply_msg.edit_text('تمت  ☑️')
       except :
         pass
-      Check_Dir(dl_path)
    except Exception as err :
        try : 
         reply_msg.edit_text(str(err))
        except : 
          pass
 
+   Check_Dir(dl_path)
    MUB_Db.Delete_Item("Tasks","MainQ",Multi_Q[0])
    del Multi_Q[0]
   
   gc.collect()
-  if len(MUB_Db.Grap_Values("Tasks","MainQ")) != 0 :
-        return Multi_loop()
-  else :
-      loop_name = "Public_Loop"
-      if globals()[loop_name] :	
-        globals()[loop_name] = False
+  globals()[loop_name] = False
 
 ###### Bot Funcs #####
 

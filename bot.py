@@ -197,15 +197,28 @@ def Media_Amplify(file_path,Rate):
 #### Blur bot 
 
 def get_seconds(clock_time) :
-    splitted = clock_time.split(':')
-    if len(splitted) == 3 : 
-      hours, minutes, seconds = map(float, clock_time.split(':'))
-    elif len(splitted) == 2 : 
-      minutes = float(splitted[0])
-      seconds = float(splitted[-1])
-      hours = 0.0
-    if '.' in str(seconds) :
-       seconds += 0.03
+    # ✅ التعديل هنا:
+    hours = 0.0
+    minutes = 0.0
+    seconds = 0.0
+    
+    try:
+        splitted = clock_time.strip().split(':')
+        if len(splitted) == 3 : 
+          hours = float(splitted[0])
+          minutes = float(splitted[1])
+          seconds = float(splitted[2])
+        elif len(splitted) == 2 : 
+          minutes = float(splitted[0])
+          seconds = float(splitted[1])
+        elif len(splitted) == 1 :
+          seconds = float(splitted[0])
+          
+        if '.' in str(seconds) :
+           seconds += 0.03
+    except Exception:
+        pass
+        
     total_seconds = (hours * 3600) + (minutes * 60) + seconds
     return total_seconds
 
@@ -213,6 +226,7 @@ def Ranges_ref(Ranges,fps) :
     ranges = []
     if len(Ranges) != 0 :
       for Range in Ranges.split(' ') : 
+       if len(Range.strip()) != 0 :
         splitted = Range.split('-') 
         start = get_seconds(splitted[0])
         end  = get_seconds(splitted[1])
@@ -1473,13 +1487,18 @@ def Media_Trim(file_path,Rate):
   return Res_File,cap
 
 
-def time_to_seconds(t_str):
-    parts = list(map(int, t_str.strip().split(':')))
-    if len(parts) == 2:    # صيغة MM:SS
-        return parts[0] * 60 + parts[1]
-    elif len(parts) == 3:  # صيغة HH:MM:SS
-        return parts[0] * 3600 + parts[1] * 60 + parts[2]
-    return 0
+def time_to_seconds(time_str):
+    parts = time_str.strip().split(':')
+    if len(parts) == 3:
+        # Format: HH:MM:SS or HH:MM:SS.ms
+        return float(parts[0]) * 3600 + float(parts[1]) * 60 + float(parts[2])
+    elif len(parts) == 2:
+        # Format: MM:SS or MM:SS.ms
+        return float(parts[0]) * 60 + float(parts[1])
+    elif len(parts) == 1:
+        # Format: SS or SS.ms
+        return float(parts[0])
+    return 0.0
 
 def Media_Change(file_path):
   Ex = '.' + file_path.split('.')[-1]
@@ -1848,6 +1867,7 @@ def Multi_loop():
         reply_msg.edit_text('تمت  ☑️')
       except :
         pass
+   
    except Exception as err :
        try : 
         reply_msg.edit_text(str(err))

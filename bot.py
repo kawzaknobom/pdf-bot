@@ -120,7 +120,7 @@ Ex_Pdf_Limit = 500
 Trim_Op = [['قص','Trim']]
 Epub_Opts = Cbx_Option 
 Media_Options = [['تضخيم','Amplify'],['تغيير الصوت','Change']] + Trim_Op + Other_Options
-Video_Options = Media_Options + [['تحويل','Convert'],['دمج','VMerge'],['بلور','Blur'],['Crop','Crop']] + Compress_Op
+Video_Options = Media_Options + [['تحويل','Convert'],['دمج','VMerge'],['بلور','Blur'],['Crop','Crop'],['كتم الصوت','Mute']] + Compress_Op
 Audio_Options = Media_Options + [['دمج','AMerge'],['تخط الصمت','Silence'],['تضخيم','Amplify']]
 # Media_Options = [['تضخيم','Amplify'],['تسريع','Speeden'],['تبطيئ','Slowen'],['تحويل','Convert'],['تغيير الصوت','Change']] + Compress_Op + Trim_Op + Other_Options
 # Video_Options = Media_Options + [['كتم الصوت','Mute'],['إبدال الصوت','SubAud'],['دمج','VMerge']]
@@ -1565,7 +1565,12 @@ def Media_Change_Ranges(file_path,Ranges):
     Res_File = Vid_Mk(file_path,Mp3_File)
   return Res_File
 
-
+def Mute_Video(File):
+  Ex = '.' + File.split('.')[-1]
+  Muted_Vid = File.replace(Ex,'_Muted.mp4')
+  Mute_Cmd = f'{ffmpeg} -i "{File}" -f lavfi -i anullsrc -map 0:v -map 1:a -c:v copy -shortest "{Muted_Vid}"'
+  os.system(Mute_Cmd)
+  return Muted_Vid
 
 ###### Main Loop ####
 
@@ -1854,6 +1859,8 @@ def Multi_loop():
                 Res_File = Mp3_Conv(File)
               elif process == 'Silence' :
                 Res_File = Media_Skip(File)
+              elif process == 'Mute' :
+                Muted_Vid = Mute_Video(File)
               Upld_File(Res_File,File_Msg)
 
          elif process == 'Renm':
@@ -2420,7 +2427,7 @@ def callback_query(CLIENT,CallbackQuery):
    
    file_msg.reply_text(Text,reply_markup=ForceReply(True),reply_to_message_id=file_msg.id)
   
-  elif Method in ('Ocr','2Pdf','Det','Ex','Marg','Unlock','Compress','Convert','Silence') :
+  elif Method in ('Ocr','2Pdf','Det','Ex','Marg','Unlock','Compress','Convert','Silence','Mute') :
 
     try : 
       replied = CallbackQuery.edit_message_text(f"تمت الإضافة للصف  \n\n ترتيبك هو {len(Quee)+1} ☕ ")

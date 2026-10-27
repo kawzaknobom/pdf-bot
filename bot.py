@@ -120,10 +120,10 @@ Ex_Pdf_Limit = 500
 Trim_Op = [['قص','Trim']]
 Epub_Opts = Cbx_Option 
 Media_Options = [['تضخيم','Amplify'],['تغيير الصوت','Change']] + Trim_Op + Other_Options
-Video_Options = Media_Options + [['تحويل','Convert'],['دمج','VMerge'],['بلور','Blur'],['Crop','Crop'],['كتم الصوت','Mute']] + Compress_Op
+Video_Options = Media_Options + [['تحويل','Convert'],['دمج','VMerge'],['بلور','Blur'],['Crop','Crop']] + Compress_Op
 Audio_Options = Media_Options + [['دمج','AMerge'],['تخط الصمت','Silence'],['تضخيم','Amplify']]
 # Media_Options = [['تضخيم','Amplify'],['تسريع','Speeden'],['تبطيئ','Slowen'],['تحويل','Convert'],['تغيير الصوت','Change']] + Compress_Op + Trim_Op + Other_Options
-# Video_Options = Media_Options + [['كتم الصوت','Mute'],['إبدال الصوت','SubAud'],['دمج','VMerge']]
+# Video_Options = Media_Options + [['كتم الصوت','Mute'],['إبدال الصوت','SubAud'],['دمج','VMerge']] ['كتم الصوت','Mute']
 # Audio_Options = Media_Options  +  [['دمج','AMerge'],['إزالة الصمت','Silence'],['تقطيع','Frag']]
 
 
@@ -1343,6 +1343,15 @@ def Mp3_Conv(File):
   Mp3_Cmd = f'{ffmpeg} -i "{File}" -q:a 0 -map a "{Mp3_File}" -y'
   os.system(Mp3_Cmd)
   return Mp3_File
+
+
+def Mute_Video(File):
+  Ex = '.' + File.split('.')[-1]
+  Muted_Vid = File.replace(Ex,'_Muted.mp4')
+  duration = Vid_Duration(File)
+  Mute_Cmd = f'{ffmpeg} -loglevel error -i "{File}" -f lavfi -i anullsrc -t {duration} -map 0:v -map 1:a -c:v copy "{Muted_Vid}"'
+  os.system(Mute_Cmd)
+  return Muted_Vid
 
 def Pdf_Cases(Case,File,Reader,Msg):
   if any(x in Case for x in ('-','/')):

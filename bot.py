@@ -1565,11 +1565,18 @@ def Media_Change_Ranges(file_path,Ranges):
     Res_File = Vid_Mk(file_path,Mp3_File)
   return Res_File
 
+def Vid_Duration(File):
+  cap = cv2.VideoCapture(File)
+  fps = cap.get(cv2.CAP_PROP_FPS)
+  frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+  duration = frame_count / fps if fps > 0 else 0
+  cap.release()
+  return duration
+
 def Mute_Video(File):
   Ex = '.' + File.split('.')[-1]
   Muted_Vid = File.replace(Ex,'_Muted.mp4')
-  ffprobe_cmd = f'{ffprobe} -v error -show_entries format=duration -of default=noprintwrappers=1:nokey=1 "{File}"'
-  duration = subprocess.check_output(ffprobe_cmd, shell=True).decode('utf-8').strip()
+  duration = Vid_Duration(File)
   Mute_Cmd = f'{ffmpeg} -i "{File}" -f lavfi -i anullsrc -t {duration} -map 0:v -map 1:a -c:v copy "{Muted_Vid}"'
   os.system(Mute_Cmd)
   return Muted_Vid

@@ -1817,7 +1817,7 @@ def Multi_loop():
                       Upld_File(Txt_File,File_Msg)
          
   
-         elif process in ('Crop','Blur','Change','Compress','Marg','Unlock','Convert','Silence','Amplify') :
+         elif process in ('Crop','Blur','Change','Compress','Marg','Unlock','Convert','Silence','Amplify','Mute') :
               
               if process == 'Crop' :
                   Crop_Mode = Rate

@@ -1041,7 +1041,8 @@ def Upld_File(file,Msg,cap=' ',isRenm=False):
         cap = Name + "\n\n" + cap
         if file.lower().endswith(Video_Forms):
           Thumb = generate_thumbnail(file)
-          RMsg = Msg.reply_video(file,caption="🎥 "+cap,thumb=Thumb,reply_to_message_id = Msg.id)
+          duration = Vid_Duration(file)
+          RMsg = Msg.reply_video(file,caption="🎥 "+cap,thumb=Thumb,duration=duration,reply_to_message_id = Msg.id)
         elif file.lower().endswith(Audio_Forms):
           RMsg = Msg.reply_audio(file,caption="🎙️ "+cap,reply_to_message_id = Msg.id)
         else :
@@ -1572,14 +1573,6 @@ def Vid_Duration(File):
   duration = frame_count / fps if fps > 0 else 0
   cap.release()
   return duration
-
-def Mute_Video(File):
-  Ex = '.' + File.split('.')[-1]
-  Muted_Vid = File.replace(Ex,'_Muted.mp4')
-  duration = Vid_Duration(File)
-  Mute_Cmd = f'{ffmpeg} -loglevel error -i "{File}" -f lavfi -i anullsrc -t {duration} -map 0:v -map 1:a -c:v copy "{Muted_Vid}"'
-  os.system(Mute_Cmd)
-  return Muted_Vid
 
 ###### Main Loop ####
 

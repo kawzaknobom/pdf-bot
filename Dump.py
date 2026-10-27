@@ -269,3 +269,13 @@ async def Detect_Lang(Text) :
 #     else :
 #       return 'ERROR',Req_Count
 #       #raise ValueError('انتهت توكنات اليوم 🌿')
+
+
+
+# def Mute_Video(File):
+#   Ex = '.' + File.split('.')[-1]
+#   Muted_Vid = File.replace(Ex,'_Muted.mp4')
+#   duration = Vid_Duration(File)
+#   Mute_Cmd = f'{ffmpeg} -loglevel error -i "{File}" -f lavfi -i anullsrc -t {duration} -map 0:v -map 1:a -c:v copy "{Muted_Vid}"'
+#   os.system(Mute_Cmd)
+#   return Muted_Vid

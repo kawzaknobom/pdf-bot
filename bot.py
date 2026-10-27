@@ -1860,7 +1860,7 @@ def Multi_loop():
               elif process == 'Silence' :
                 Res_File = Media_Skip(File)
               elif process == 'Mute' :
-                Muted_Vid = Mute_Video(File)
+                Res_File = Mute_Video(File)
               Upld_File(Res_File,File_Msg)
 
          elif process == 'Renm':

@@ -1041,8 +1041,8 @@ def Upld_File(file,Msg,cap=' ',isRenm=False):
         cap = Name + "\n\n" + cap
         if file.lower().endswith(Video_Forms):
           Thumb = generate_thumbnail(file)
-          duration = Vid_Duration(file)
-          RMsg = Msg.reply_video(file,caption="🎥 "+cap,thumb=Thumb,duration=duration,reply_to_message_id = Msg.id)
+          # duration = Vid_Duration(file)
+          RMsg = Msg.reply_video(file,caption="🎥 "+cap,thumb=Thumb,reply_to_message_id = Msg.id)
         elif file.lower().endswith(Audio_Forms):
           RMsg = Msg.reply_audio(file,caption="🎙️ "+cap,reply_to_message_id = Msg.id)
         else :

@@ -1568,7 +1568,7 @@ def Media_Change_Ranges(file_path,Ranges):
 def Mute_Video(File):
   Ex = '.' + File.split('.')[-1]
   Muted_Vid = File.replace(Ex,'_Muted.mp4')
-  Mute_Cmd = f'{ffmpeg} -i "{File}" -f lavfi -i anullsrc -map 0:v -map 1:a -c:v copy -shortest "{Muted_Vid}"'
+  Mute_Cmd = f'{ffmpeg} -hwaccel none -i "{File}" -f lavfi -i anullsrc -map 0:v -map 1:a -c:v copy -shortest "{Muted_Vid}"'
   os.system(Mute_Cmd)
   return Muted_Vid
 

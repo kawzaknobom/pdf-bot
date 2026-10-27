@@ -36,7 +36,7 @@ from google import genai
 from google.genai import types
 
 from static_ffmpeg import run
-ffmpeg, _ = run.get_or_fetch_platform_executables_else_raise()
+ffmpeg, ffprobe = run.get_or_fetch_platform_executables_else_raise()
 
 
 from Mongo_Class import *
@@ -1568,7 +1568,9 @@ def Media_Change_Ranges(file_path,Ranges):
 def Mute_Video(File):
   Ex = '.' + File.split('.')[-1]
   Muted_Vid = File.replace(Ex,'_Muted.mp4')
-  Mute_Cmd = f'{ffmpeg} -hwaccel none -i "{File}" -f lavfi -i anullsrc -map 0:v -map 1:a -c:v copy -shortest "{Muted_Vid}"'
+  ffprobe_cmd = f'{ffprobe} -v error -show_entries format=duration -of default=noprintwrappers=1:nokey=1 "{File}"'
+  duration = subprocess.check_output(ffprobe_cmd, shell=True).decode('utf-8').strip()
+  Mute_Cmd = f'{ffmpeg} -i "{File}" -f lavfi -i anullsrc -t {duration} -map 0:v -map 1:a -c:v copy "{Muted_Vid}"'
   os.system(Mute_Cmd)
   return Muted_Vid
 

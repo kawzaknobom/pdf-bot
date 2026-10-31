@@ -330,7 +330,7 @@ def Raw_Blur(file_path,Rate,Blur_File):
           start_y = height // 3
           end_y = 2 * height // 3
           frame[start_y:end_y, 0:width] = cv2.blur(frame[start_y:end_y, 0:width], (Rate, Rate))
-          
+
         out.write(frame)
     else:
         break 
@@ -2608,7 +2608,7 @@ def _telegram_file(client, message):
             [KeyboardButton("UpperHalf"), KeyboardButton("LowerHalf")],
             [KeyboardButton("RightThird"), KeyboardButton("LeftThird")],
             [KeyboardButton("UpperThird"), KeyboardButton("LowerThird")],
-            [KeyboardButton("MiddleVThird"), KeyboardButton("MiddleVThird")],
+            [KeyboardButton("MiddleVThird"), KeyboardButton("MiddleHThird")],
             [KeyboardButton("RightThirdLeft"), KeyboardButton("LeftThirdLeft")],
             [KeyboardButton("UpperThirdLeft"), KeyboardButton("LowerThirdLeft")]
             ]

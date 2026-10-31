@@ -263,6 +263,8 @@ def Raw_Blur(file_path,Rate,Blur_File):
   LeftThirdLeft = Ranges_ref(Blur_File['LeftThirdLeft'],fps)
   UpperThirdLeft = Ranges_ref(Blur_File['UpperThirdLeft'],fps)
   LowerThirdLeft = Ranges_ref(Blur_File['LowerThirdLeft'],fps)
+  MiddleHThird = Ranges_ref(Blur_File['MiddleHThird'],fps)
+  MiddleVThird = Ranges_ref(Blur_File['MiddleVThird'],fps)
 
   totalNoFrames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
   durationInSeconds = totalNoFrames // fps
@@ -318,7 +320,17 @@ def Raw_Blur(file_path,Rate,Blur_File):
         if BlurMode == 'LowerThirdLeft' or isinrange(ret_num,LowerThirdLeft ) : 
           midpoint = 2 * height // 3
           frame[0:midpoint, 0:width] = cv2.blur(frame[0:midpoint, 0:width], (Rate, Rate))
-      
+        
+        if BlurMode == 'MiddleHThird' or isinrange(ret_num, MiddleHThird): 
+          start_x = width // 3
+          end_x = 2 * width // 3
+          frame[0:height, start_x:end_x] = cv2.blur(frame[0:height, start_x:end_x], (Rate, Rate))
+
+        if BlurMode == 'MiddleVThird' or isinrange(ret_num, MiddleVThird): 
+          start_y = height // 3
+          end_y = 2 * height // 3
+          frame[start_y:end_y, 0:width] = cv2.blur(frame[start_y:end_y, 0:width], (Rate, Rate))
+          
         out.write(frame)
     else:
         break 
@@ -2514,9 +2526,9 @@ def _telegram_file(client, message):
       
       if process == 'Blur' :
         if key not in list(Blur_Dict.keys()) :
-          Blur_Dict[key] = {'isfull':True,'MainBlur':'','RightHalf':'','LeftHalf':'','UpperHalf':'','LowerHalf':'','RightThird':'','LeftThird':'','UpperThird':'','LowerThird':'','RightThirdLeft':'','LeftThirdLeft':'','UpperThirdLeft':'','LowerThirdLeft':'','FullFrame':'','RightHalfK':False,"LeftHalfK":False,"UpperHalfK":False,"LowerHalfK":False,"RightThirdK":False,"LeftThirdK":False,"UpperThirdK":False,"LowerThirdK":False,"RightThirdLeftK":False,"LeftThirdLeftK":False,"UpperThirdLeftK":False,"LowerThirdLeftK":False,"FullFrameK":False}
+          Blur_Dict[key] = {'isfull':True,'MainBlur':'','RightHalf':'','LeftHalf':'','UpperHalf':'','LowerHalf':'','RightThird':'','LeftThird':'','MiddleVThird':'','UpperThird':'','LowerThird':'','MiddleHThird':'','RightThirdLeft':'','LeftThirdLeft':'','UpperThirdLeft':'','LowerThirdLeft':'','FullFrame':'','RightHalfK':False,"LeftHalfK":False,"UpperHalfK":False,"LowerHalfK":False,"RightThirdK":False,"LeftThirdK":False,"UpperThirdK":False,"LowerThirdK":False,"RightThirdLeftK":False,"LeftThirdLeftK":False,"UpperThirdLeftK":False,"LowerThirdLeftK":False,"MiddleHThirdK":False,"MiddleVThirdK":False,"FullFrameK":False}
         
-        if Blur_Dict[key]['RightHalfK'] or Blur_Dict[key]['LeftHalfK'] or Blur_Dict[key]['UpperHalfK'] or Blur_Dict[key]['LowerHalfK'] or Blur_Dict[key]['RightThirdK'] or Blur_Dict[key]['LeftThirdK'] or Blur_Dict[key]['UpperThirdK'] or Blur_Dict[key]['LowerThirdK'] or Blur_Dict[key]['RightThirdLeftK'] or Blur_Dict[key]['LeftThirdLeftK'] or Blur_Dict[key]['UpperThirdLeftK'] or Blur_Dict[key]['LowerThirdLeftK'] or Blur_Dict[key]['FullFrameK']  :
+        if Blur_Dict[key]['RightHalfK'] or Blur_Dict[key]['LeftHalfK'] or Blur_Dict[key]['UpperHalfK'] or Blur_Dict[key]['LowerHalfK'] or Blur_Dict[key]['RightThirdK'] or Blur_Dict[key]['LeftThirdK'] or Blur_Dict[key]['UpperThirdK'] or Blur_Dict[key]['LowerThirdK'] or Blur_Dict[key]['RightThirdLeftK'] or Blur_Dict[key]['LeftThirdLeftK'] or Blur_Dict[key]['UpperThirdLeftK'] or Blur_Dict[key]['LowerThirdLeftK'] or Blur_Dict[key]['FullFrameK'] or Blur_Dict[key]['MiddleHThirdK'] or Blur_Dict[key]['MiddleVThirdK'] :
           
           if Blur_Dict[key]['RightHalfK'] :
             Blur_Dict[key]['RightHalf'] = message.text
@@ -2572,6 +2584,16 @@ def _telegram_file(client, message):
             Blur_Dict[key]['FullFrame'] = message.text
             Blur_Dict[key]['FullFrameK'] = False
             message.reply('تم التلقيم')
+
+          elif Blur_Dict[key]['MiddleVThirdK'] :
+            Blur_Dict[key]['MiddleVThird'] = message.text
+            Blur_Dict[key]['MiddleVThirdK'] = False
+            message.reply('تم التلقيم')
+
+          elif Blur_Dict[key]['MiddleHThirdK'] :
+            Blur_Dict[key]['MiddleHThird'] = message.text
+            Blur_Dict[key]['MiddleHThirdK'] = False
+            message.reply('تم التلقيم')
           
   
         if message.text in ['Full Vid','Ranges'] :
@@ -2586,6 +2608,7 @@ def _telegram_file(client, message):
             [KeyboardButton("UpperHalf"), KeyboardButton("LowerHalf")],
             [KeyboardButton("RightThird"), KeyboardButton("LeftThird")],
             [KeyboardButton("UpperThird"), KeyboardButton("LowerThird")],
+            [KeyboardButton("MiddleVThird"), KeyboardButton("MiddleVThird")],
             [KeyboardButton("RightThirdLeft"), KeyboardButton("LeftThirdLeft")],
             [KeyboardButton("UpperThirdLeft"), KeyboardButton("LowerThirdLeft")]
             ]
@@ -2594,7 +2617,7 @@ def _telegram_file(client, message):
           replied = message.reply_text(text = Text,reply_markup = ReplyKeyboardMarkup(Buttons,resize_keyboard=True),reply_to_message_id = int(file_id))
           
         
-        elif message.text in ['RightHalf','LeftHalf','UpperHalf','LowerHalf','RightThird','LeftThird','UpperThird','LowerThird','RightThirdLeft','LeftThirdLeft','UpperThirdLeft','LowerThirdLeft','FullFrame'] :
+        elif message.text in ['RightHalf','LeftHalf','UpperHalf','LowerHalf','RightThird','LeftThird','UpperThird','LowerThird','RightThirdLeft','LeftThirdLeft','UpperThirdLeft','LowerThirdLeft','FullFrame','MiddleVThird','MiddleHThird'] :
           if Blur_Dict[key]['isfull'] :
             Blur_Dict[key]['MainBlur'] = message.text
             Item = callback_dict[key]

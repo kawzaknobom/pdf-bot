@@ -2133,7 +2133,7 @@ async def get_video_options(client: Client, message: Message):
     # استخراج معلومات الفيديو لتوليد الأزرار المناسبة
     try:
         def fetch_info():
-            ydl_opts = {'extract_flat': False, 'skip_download': True}
+            ydl_opts = {'extract_flat': False, 'skip_download': True ,'cookiefile': 'cookies.txt'}
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 return ydl.extract_info(url, download=False)
 

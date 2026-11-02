@@ -91,6 +91,9 @@ else:
     print("⚠️ تحذير: متغير البيئة YOUTUBE_COOKIES غير موجود أو فارغ!")
 
 
+Public_Loop = False
+
+
 def Pyrogram_Client(Bot_Token):
   Bot_Identifier = Bot_Token.split(':')[0]
   Session_file = Bot_Identifier+'_session_prm_bot'
@@ -99,10 +102,6 @@ def Pyrogram_Client(Bot_Token):
 bot,Bot_Identifier = Pyrogram_Client(Bot_Token)
 
 
-
-#####
-
-Public_Loop = False
 
 
 #### Bot Funcs ####

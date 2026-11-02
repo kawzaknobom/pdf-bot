@@ -2135,7 +2135,12 @@ async def get_video_options(client: Client, message: Message):
         def fetch_info():
             ydl_opts = {
                 'skip_download': True,
-                'cookiefile': 'cookies.txt'
+                'cookiefile': 'cookies.txt',
+                'extractor_args': {
+                    'youtube': {
+                        'player_client': ['android', 'web']
+                    }
+                }
             }
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 return ydl.extract_info(url, download=False)
@@ -2188,6 +2193,11 @@ async def handle_download_callback(client: Client, callback_query: CallbackQuery
                 'format': 'bestaudio/best',
                 'outtmpl': 'downloads/%(id)s.%(ext)s',
                 'cookiefile': 'cookies.txt',  # أضف هذا السطر
+                'extractor_args': {
+                    'youtube': {
+                        'player_client': ['android', 'web']
+                    }
+                },
                 'postprocessors': [{
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',
@@ -2199,7 +2209,12 @@ async def handle_download_callback(client: Client, callback_query: CallbackQuery
             ydl_opts = {
                 'format': f'bestvideo[height<={quality}][ext=mp4]+bestaudio[ext=m4a]/best[height<={quality}][ext=mp4]/best',
                 'outtmpl': 'downloads/%(id)s.%(ext)s',
-                'cookiefile': 'cookies.txt',  # أضف هذا السطر
+                'cookiefile': 'cookies.txt',  
+                'extractor_args': {
+                    'youtube': {
+                        'player_client': ['android', 'web']
+                    }
+                }# أضف هذا السطر
             }
 
         def download_media():

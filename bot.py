@@ -1593,12 +1593,12 @@ def Vid_Duration(File):
 ###### Main Loop ####
 
 def Multi_loop():
-  loop_name = "Public_Loop"
-  globals()[loop_name] = True
   Multi_Q = MUB_Db.Grap_Values("Tasks","MainQ")
   if len(Multi_Q) == 0 :
     return 
   
+  loop_name = "Public_Loop"
+  globals()[loop_name] = True
   while True:
    Multi_Q = MUB_Db.Grap_Values("Tasks", "MainQ")
    if not Multi_Q or len(Multi_Q) == 0:

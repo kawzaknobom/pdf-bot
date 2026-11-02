@@ -79,6 +79,19 @@ Gemini_Tokens = os.environ['Gemini_Tokens']
 Apis = Filter_Apis(Gemini_Tokens)
 Admins = admins.split(',')
 
+COOKIES_CONTENT = MUB_Db.Grap_Values("Tasks","cookies")
+if COOKIES_CONTENT:
+    try:
+        # استخدام صيغة كتابة آمنة تدعم الأسطر الجديدة بشكل صحيح (\n)
+        with open("cookies.txt", "w", encoding="utf-8") as f:
+            f.write(COOKIES_CONTENT.replace("\\n", "\n"))
+        print("✅ تم إنشاء/تحديث ملف cookies.txt بنجاح من متغير البيئة.")
+    except Exception as e:
+        print(f"❌ فشل في كتابة ملف cookies.txt: {e}")
+else:
+    print("⚠️ تحذير: متغير البيئة YOUTUBE_COOKIES غير موجود أو فارغ!")
+
+
 Public_Loop = False
 
 

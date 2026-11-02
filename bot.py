@@ -77,8 +77,18 @@ secret_key = os.environ['secret_key']
 admins = os.environ['admins']
 Gemini_Tokens = os.environ['Gemini_Tokens']
 Apis = Filter_Apis(Gemini_Tokens)
-
 Admins = admins.split(',')
+COOKIES_CONTENT = os.getenv("YOUTUBE_COOKIES")
+if COOKIES_CONTENT:
+    try:
+        # استخدام صيغة كتابة آمنة تدعم الأسطر الجديدة بشكل صحيح (\n)
+        with open("cookies.txt", "w", encoding="utf-8") as f:
+            f.write(COOKIES_CONTENT.replace("\\n", "\n"))
+        print("✅ تم إنشاء/تحديث ملف cookies.txt بنجاح من متغير البيئة.")
+    except Exception as e:
+        print(f"❌ فشل في كتابة ملف cookies.txt: {e}")
+else:
+    print("⚠️ تحذير: متغير البيئة YOUTUBE_COOKIES غير موجود أو فارغ!")
 
 
 def Pyrogram_Client(Bot_Token):
@@ -2174,6 +2184,7 @@ async def handle_download_callback(client: Client, callback_query: CallbackQuery
             ydl_opts = {
                 'format': 'bestaudio/best',
                 'outtmpl': 'downloads/%(id)s.%(ext)s',
+                'cookiefile': 'cookies.txt',  # أضف هذا السطر
                 'postprocessors': [{
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',
@@ -2185,6 +2196,7 @@ async def handle_download_callback(client: Client, callback_query: CallbackQuery
             ydl_opts = {
                 'format': f'bestvideo[height<={quality}][ext=mp4]+bestaudio[ext=m4a]/best[height<={quality}][ext=mp4]/best',
                 'outtmpl': 'downloads/%(id)s.%(ext)s',
+                'cookiefile': 'cookies.txt',  # أضف هذا السطر
             }
 
         def download_media():

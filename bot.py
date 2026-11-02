@@ -78,7 +78,7 @@ admins = os.environ['admins']
 Gemini_Tokens = os.environ['Gemini_Tokens']
 Apis = Filter_Apis(Gemini_Tokens)
 Admins = admins.split(',')
-COOKIES_CONTENT = os.getenv("YOUTUBE_COOKIES")
+COOKIES_CONTENT = os.environ["YOUTUBE_COOKIES"]
 if COOKIES_CONTENT:
     try:
         # استخدام صيغة كتابة آمنة تدعم الأسطر الجديدة بشكل صحيح (\n)

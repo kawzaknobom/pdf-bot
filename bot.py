@@ -13,7 +13,7 @@ from pyrogram.enums import MessageEntityType
 
 
 from functools import reduce
-import os,re,random, threading,time,subprocess,shutil,img2pdf,json,requests,edge_tts,cv2,gc
+import os,re,random, threading,time,subprocess,shutil,img2pdf,json,requests,edge_tts,cv2,gc,yt_dlp
 
 
 from pypdf import PdfReader
@@ -35,9 +35,8 @@ from googletrans import Translator
 from google import genai
 from google.genai import types
 
-from static_ffmpeg import run
-ffmpeg, ffprobe = run.get_or_fetch_platform_executables_else_raise()
-
+import static_ffmpeg
+static_ffmpeg.add_paths()
 
 from Mongo_Class import *
 
@@ -177,7 +176,7 @@ async def tts_ai(text,VOICE):
 def Vid_Mk(Vid,Aud):
   Ext = '.' + Vid.split('.')[-1]
   Vid_Res = Vid.replace(Ext,'_Merged.mp4')
-  Sub_Cmd = f'{ffmpeg} -i "{Vid}" -i "{Aud}" -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 "{Vid_Res}" -y'
+  Sub_Cmd = f'ffmpeg -i "{Vid}" -i "{Aud}" -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 "{Vid_Res}" -y'
   os.system(Sub_Cmd)
   return Vid_Res
 
@@ -188,7 +187,7 @@ def Media_Amplify(file_path,Rate):
     Res_File = Mp3_File
   else: 
     Res_File = file_path.replace(Ext,f'_Amplified{Ext}')
-  Amplify_Cmd = f'{ffmpeg} -i "{file_path}" -filter:a volume={Rate}dB "{Mp3_File}"'
+  Amplify_Cmd = f'ffmpeg -i "{file_path}" -filter:a volume={Rate}dB "{Mp3_File}"'
   os.system(Amplify_Cmd)
   if file_path.lower().endswith(Video_Forms):
     Res_File = Vid_Mk(file_path,Mp3_File)
@@ -419,7 +418,7 @@ def Crop_Vid(file_path,Crop_Mode):
 def Media_Skip(file_path):
   Ext = '.' + file_path.split('.')[-1]
   Res_File = file_path.replace(Ext,"_Skipped.mp3")
-  Skip_Cmd = f'{ffmpeg} -i "{file_path}" -af "silenceremove=start_periods=1:stop_periods=-1:start_threshold=-30dB:stop_threshold=-50dB:start_silence=2:stop_silence=2" "{Res_File}"'
+  Skip_Cmd = f'ffmpeg -i "{file_path}" -af "silenceremove=start_periods=1:stop_periods=-1:start_threshold=-30dB:stop_threshold=-50dB:start_silence=2:stop_silence=2" "{Res_File}"'
   os.system(Skip_Cmd)
   return Res_File
 
@@ -427,7 +426,7 @@ def Media_Skip(file_path):
 def Encode_Vid(File):
     Ext = '.' + File.split('.')[-1]
     Mp4_File = File.replace(Ext,'_Encoded.mp4')
-    Vid_Encode = f'{ffmpeg} -i "{File}" -c:a aac -codec:v h264 -b:v 1000k "{Mp4_File}" -y'
+    Vid_Encode = f'ffmpeg -i "{File}" -c:a aac -codec:v h264 -b:v 1000k "{Mp4_File}" -y'
     os.system(Vid_Encode)
     return Mp4_File
 
@@ -886,13 +885,13 @@ def Get_Msg(bot,Chat_id,msg_id):
 
 def Vid_Merge(Vid_Txt) :
   Vid_File = Vid_Txt.replace('.txt','_VMerged.mkv')
-  Vid_Cmd = f'{ffmpeg} -f concat -safe 0 -i "{Vid_Txt}" -c copy "{Vid_File}"'
+  Vid_Cmd = f'ffmpeg -f concat -safe 0 -i "{Vid_Txt}" -c copy "{Vid_File}"'
   os.system(Vid_Cmd)
   return Vid_File
 
 def Aud_Merge(Txt_File):
     Mp3_File = Txt_File.replace('.txt','_Merged.mp3')
-    Aud_Merge_Cmd = f'{ffmpeg} -f concat -safe 0 -i "{Txt_File}" "{Mp3_File}" -y'
+    Aud_Merge_Cmd = f'ffmpeg -f concat -safe 0 -i "{Txt_File}" "{Mp3_File}" -y'
     os.system(Aud_Merge_Cmd)
     os.remove(Txt_File)
     return Mp3_File
@@ -1352,7 +1351,7 @@ def Item_add(Item):
 
 def Mp3_Conv(File):
   Mp3_File = File.replace('.' + File.split('.')[-1],'_Conv.mp3')
-  Mp3_Cmd = f'{ffmpeg} -i "{File}" -q:a 0 -map a "{Mp3_File}" -y'
+  Mp3_Cmd = f'ffmpeg -i "{File}" -q:a 0 -map a "{Mp3_File}" -y'
   os.system(Mp3_Cmd)
   return Mp3_File
 
@@ -1361,7 +1360,7 @@ def Mute_Video(File):
   Ex = '.' + File.split('.')[-1]
   Muted_Vid = File.replace(Ex,'_Muted.mp4')
   duration = Vid_Duration(File)
-  Mute_Cmd = f'{ffmpeg} -loglevel error -i "{File}" -f lavfi -i anullsrc -t {duration} -map 0:v -map 1:a -c:v copy "{Muted_Vid}"'
+  Mute_Cmd = f'ffmpeg -loglevel error -i "{File}" -f lavfi -i anullsrc -t {duration} -map 0:v -map 1:a -c:v copy "{Muted_Vid}"'
   os.system(Mute_Cmd)
   return Muted_Vid
 
@@ -1497,11 +1496,11 @@ def Media_Trim(file_path,Rate):
   Ext = '.' + file_path.split('.')[-1]
   Res_File = file_path.replace(Ext,f"_Trimmed{Ext}")
   if file_path.lower().endswith(Audio_Forms): 
-    Trim_Cmd = f'{ffmpeg} -y -ss {strt_point} -to {end_point} -i "{file_path}" -map 0:a -vn -c copy "{Res_File}"'
+    Trim_Cmd = f'ffmpeg -y -ss {strt_point} -to {end_point} -i "{file_path}" -map 0:a -vn -c copy "{Res_File}"'
     os.system(Trim_Cmd)
   else :
-    Trim_Cmd = f'{ffmpeg} -ss {strt_point} -to {end_point} -i "{file_path}" -c copy "{Res_File}" -y'
-    # Trim_Cmd = f'{ffmpeg} -i "{file_path}" -ss {strt_point} -strict -2 -to {end_point} -c:a aac -codec:v h264 -b:v 1000k "{Res_File}" -y '
+    Trim_Cmd = f'ffmpeg -ss {strt_point} -to {end_point} -i "{file_path}" -c copy "{Res_File}" -y'
+    # Trim_Cmd = f'ffmpeg -i "{file_path}" -ss {strt_point} -strict -2 -to {end_point} -c:a aac -codec:v h264 -b:v 1000k "{Res_File}" -y '
     os.system(Trim_Cmd)
     # Res_File = Encode_Vid(Res_File)
     
@@ -1529,7 +1528,7 @@ def Media_Change(file_path):
     Res_File = Mp3_File
   else: 
     Res_File = file_path.replace(Ex,'_Changed.mp4')
-  Change_Cmd = f'{ffmpeg} -i "{file_path}" -af asetrate=44100*0.75,aresample=44100,atempo=4/3 "{Mp3_File}"'
+  Change_Cmd = f'ffmpeg -i "{file_path}" -af asetrate=44100*0.75,aresample=44100,atempo=4/3 "{Mp3_File}"'
   os.system(Change_Cmd)
   if file_path.lower().endswith(Video_Forms):
     Res_File = Vid_Mk(file_path,Mp3_File)
@@ -1580,7 +1579,7 @@ def Media_Change_Ranges(file_path,Ranges):
   full_filter_complex = ";".join(filter_chunks) + ";" + concat_str
 
   # 3. صياغة أمر FFmpeg النهائي
-  Change_Cmd = f'{ffmpeg} -i "{file_path}" -filter_complex "{full_filter_complex}" -map "[outa]" "{Mp3_File}"'
+  Change_Cmd = f'ffmpeg -i "{file_path}" -filter_complex "{full_filter_complex}" -map "[outa]" "{Mp3_File}"'
 
   os.system(Change_Cmd)
   if file_path.lower().endswith(Video_Forms):
@@ -2111,6 +2110,137 @@ def command1(bot,message):
        Merge_Quee[Key][0].append(Replied.id)
 
 
+##################################### uTUBE #####################
+
+@bot.on_message(filters.text & (filters.regex("http://") | filters.regex("https://")))
+async def get_video_options(client: Client, message: Message):
+  User_Id = message.from_user.id
+  if str(User_Id) in admins :
+    url = message.text.strip()
+    
+    status_msg = await message.reply_text("⏳ **جاري جلب معلومات الفيديو...**")
+
+    # استخراج معلومات الفيديو لتوليد الأزرار المناسبة
+    try:
+        def fetch_info():
+            ydl_opts = {'extract_flat': False, 'skip_download': True}
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                return ydl.extract_info(url, download=False)
+
+        loop = asyncio.get_running_loop()
+        info = await loop.run_in_executor(None, fetch_info)
+        title = info.get('title', 'YouTube Video')
+        
+        # إنشاء أزرار الجودات والصوت
+        # نستخدم الـ URL أو معرف الفيديو مخفياً في الكولباك (يفضل حفظ الرابط في قاعدة بيانات أو تمريره بحذر، هنا سنبسطه بترميز بسيط أو تمريره مباشرة إذا كان قصيراً)
+        # ملاحظة: Telegram Callback data محدود بـ 64 بايت، لذا سنستخدم اختصاراً أو نمرر رابط يوتيوب القصير إن أمكن، أو نستخدم تخزين مؤقت.
+        # للتبسيط، سنستخدم معرف الفيديو (video id)
+        video_id = info.get('id')
+        
+        keyboard = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("🎬 جودة عالية (1080p)", callback_data=f"dl|1080|{video_id}"),
+                InlineKeyboardButton("🎬 جودة متوسطة (720p)", callback_data=f"dl|720|{video_id}")
+            ],
+            [
+                InlineKeyboardButton("🎬 جودة منخفضة (480p)", callback_data=f"dl|480|{video_id}"),
+                InlineKeyboardButton("🎵 تحويل إلى صوت (MP3)", callback_data=f"dl|mp3|{video_id}")
+            ]
+        ])
+
+        await status_msg.edit_text(
+            f"📌 **{title}**\n\nاختر صيغة التحميل المطلوبة:",
+            reply_markup=keyboard
+        )
+
+    except Exception as e:
+        await status_msg.edit_text(f"❌ **حدث خطأ أثناء جلب المعلومات:**\n`{str(e)}`")
+
+# معالجة الضغط على الأزرار
+@bot.on_callback_query(filters.regex(r"^dl\|"))
+async def handle_download_callback(client: Client, callback_query: CallbackQuery):
+    data = callback_query.data.split("|")
+    quality = data[1]
+    video_id = data[2]
+    url = f"https://youtu.be/{video_id}"
+    
+    message = callback_query.message
+    await message.edit_text("📥 **جاري التحميل والمعالجة... يرجى الانتظار.**")
+
+    os.makedirs("downloads", exist_ok=True)
+    
+    try:
+        if quality == "mp3":
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'outtmpl': 'downloads/%(id)s.%(ext)s',
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '192',
+                }],
+            }
+        else:
+            # اختيار الجودة بناءً على طلب المستخدم
+            ydl_opts = {
+                'format': f'bestvideo[height<={quality}][ext=mp4]+bestaudio[ext=m4a]/best[height<={quality}][ext=mp4]/best',
+                'outtmpl': 'downloads/%(id)s.%(ext)s',
+            }
+
+        def download_media():
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+                # إذا كان MP3، سيتغير الامتداد
+                if quality == "mp3":
+                    file_path = os.path.join("downloads", f"{video_id}.mp3")
+                else:
+                    file_path = ydl.prepare_filename(info)
+                    # أحياناً yt-dlp لا يدمج الامتداد بدقة مطلقة مع postprocessor إذا لم يُحدد، لكن مع الدمج الافتراضي يعمل جيداً
+                return info, file_path
+
+        loop = asyncio.get_running_loop()
+        info, file_path = await loop.run_in_executor(None, download_media)
+        
+        title = info.get('title', 'Media')
+        
+        if not os.path.exists(file_path):
+            # محاولة البحث عن الملف بالامتداد الصحيح إذا تغير
+            for f in os.listdir("downloads"):
+                if f.startswith(video_id):
+                    file_path = os.path.join("downloads", f)
+                    break
+
+        if not os.path.exists(file_path):
+            await message.edit_text("❌ **فشل التحميل:** لم يتم العثور على الملف الناتج.")
+            return
+
+        await message.edit_text("📤 **جاري الرفع إلى تيليجرام...**")
+
+        if quality == "mp3":
+            await client.send_audio(
+                chat_id=message.chat.id,
+                audio=file_path,
+                title=title,
+                performer=info.get('uploader', 'YouTube')
+            )
+        else:
+            await client.send_video(
+                chat_id=message.chat.id,
+                video=file_path,
+                caption=f"🎬 **{title}**",
+                duration=info.get('duration', 0),
+                supports_streaming=True
+            )
+
+        # تنظيف الملفات المؤقتة
+        await message.delete()
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+    except Exception as e:
+        await message.edit_text(f"❌ **حدث خطأ أثناء التحميل:**\n`{str(e)}`")
+        if 'file_path' in locals() and os.path.exists(file_path):
+            os.remove(file_path)
      
 ########################################################################
 ########################################################################

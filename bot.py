@@ -13,7 +13,7 @@ from pyrogram.enums import MessageEntityType
 
 
 from functools import reduce
-import os,re,random, threading,time,subprocess,shutil,img2pdf,json,requests,edge_tts,cv2,gc,yt_dlp
+import os,re,random, threading,time,subprocess,shutil,img2pdf,json,requests,edge_tts,cv2,gc
 
 
 from pypdf import PdfReader

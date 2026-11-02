@@ -22,7 +22,6 @@ internetarchive
 static_ffmpeg
 EbookLib
 pymongo
-yt-dlp
 edge-tts
 opencv-python-headless
 

@@ -23,6 +23,7 @@ static_ffmpeg
 EbookLib
 pymongo
 yt-dlp
+nodejs-bin
 edge-tts
 opencv-python-headless
 

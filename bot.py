@@ -1342,7 +1342,6 @@ def Item_add(Item):
   MUB_Db.Insert_Item("Tasks",Quee,Item)
   loop_name = "Public_Loop"
   if not globals()[loop_name] :	
-    globals()[loop_name] = True
     Multi_loop()
 
 

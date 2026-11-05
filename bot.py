@@ -317,12 +317,12 @@ def Raw_Blur(file_path,Rate,Blur_File):
           midpoint = 2 * height // 3
           frame[0:midpoint, 0:width] = cv2.blur(frame[0:midpoint, 0:width], (Rate, Rate))
         
-        if BlurMode == 'MiddleHThird' or isinrange(ret_num, MiddleHThird): 
+        if BlurMode == 'MiddleVThird' or isinrange(ret_num, MiddleVThird): 
           start_x = width // 3
           end_x = 2 * width // 3
           frame[0:height, start_x:end_x] = cv2.blur(frame[0:height, start_x:end_x], (Rate, Rate))
 
-        if BlurMode == 'MiddleVThird' or isinrange(ret_num, MiddleVThird): 
+        if BlurMode == 'MiddleHThird' or isinrange(ret_num, MiddleHThird): 
           start_y = height // 3
           end_y = 2 * height // 3
           frame[start_y:end_y, 0:width] = cv2.blur(frame[start_y:end_y, 0:width], (Rate, Rate))
